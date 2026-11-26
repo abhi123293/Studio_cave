@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, ArrowDown } from "lucide-react";
@@ -144,7 +143,7 @@ useEffect(() => {
   const animate = () => {
     const difference = targetP.current - currentP;
 
-    currentP += difference * 0.09;
+   currentP += difference * 0.18;
 
     if (Math.abs(difference) < 0.0005) {
       currentP = targetP.current;
@@ -174,8 +173,8 @@ useEffect(() => {
 // Building rises gradually over a longer scroll interval
 const zoom = ease(range(p, 0.05, 0.78));
 
-const buildingScale = 1 + zoom * 1.35;
-const buildingY = -zoom * 28;
+const buildingScale = 1 + zoom * 0.35;
+const buildingY = -zoom * 85;
 
   // headline block fades out FAST so the name can appear right away
  // Supporting content disappears first
@@ -184,26 +183,31 @@ const supportOut = ease(range(p, 0.08, 0.28));
 
 // Main heading changes colour first
 // Heading and paragraph move down and fade out
-const textOut = ease(range(p, 0.18, 0.32));
-const textMove = ease(range(p, 0.12, 0.65));
+// Heading starts moving as soon as scrolling begins
+// Start moving as soon as the user scrolls
+const textOut = ease(range(p, 0.02, 0.28));
+const textMove = ease(range(p, 0.01, 0.30));
 
   // 1) outline text wipes in left → right
 // Draw the STUDIO CAVE outline as the first heading disappears
 const reveal = ease(range(p, 0.20, 0.48));
 
 // Reveal the sky and cloud layer after the outline
-const windowIn = ease(range(p, 0.46, 0.62));
+const windowIn = ease(range(p, 0.48, 0.58));
 
   // ----- CLOUDS -----
   const sideGrow = ease(range(p, 0, 0.7));
   const sideScale = 1 + sideGrow * 0.35;
   const sideOpacity = 1 - range(p, 0.72, 0.92);
 
-  const bankLow = ease(range(p, 0.06, 0.85));
-  const bankHigh = ease(range(p, 0.3, 0.85));
+// First cloud bank starts after the building has nearly finished moving
+// Building animation finishes around p = 0.78.
+// Only then do the clouds start rising.
+const bankLow = ease(range(p, 0.78, 0.93));
+const bankHigh = ease(range(p, 0.84, 0.98));
 
   // fade to white
-  const whiteOut = ease(range(p, 0.82, 1));
+const whiteOut = ease(range(p, 0.97, 1));
 
   return (
     // tall wrapper = scroll distance for the animation
@@ -325,7 +329,7 @@ className="pointer-events-none absolute -bottom-[55vh] left-1/2 z-10 w-[110vw] m
   className="relative z-[8] w-full max-w-5xl"
 style={{
   opacity: 1 - textOut,
-  transform: `translateY(${textMove * 55}px)`,
+  transform: `translateY(${textMove * 110}px)`,
 }}
   >
     <div className="overflow-hidden">
@@ -342,7 +346,7 @@ style={{
     className="pointer-events-auto absolute inset-x-0 top-full z-[8] px-6"
    style={{
   opacity: 1 - textOut,
-  transform: `translateY(${textMove * 55}px)`,
+ transform: `translateY(${textMove * 110}px)`,
   pointerEvents: textOut > 0.6 ? "none" : "auto",
 }}
   >
@@ -450,34 +454,7 @@ style={{
           </g>
 
           {/* OUTLINE: wipes in left → right at the very start of the scroll */}
-          <g
-            style={{
-              opacity: 1 - range(p, 0.55, 0.7) * 0.0, // keep the outline visible
-              transform: `scale(${1.05 - reveal * 0.05})`,
-              transformOrigin: "720px 440px",
-            }}
-          >
-            <clipPath id="win-reveal">
-              <rect x="0" y="0" width={1440 * reveal} height="800" />
-            </clipPath>
-
-            <g clipPath="url(#win-reveal)">
-              <text
-                x={BRAND.x}
-                y={BRAND.y}
-                textAnchor="middle"
-                fontSize={BRAND.fontSize}
-                fontWeight={800}
-                textLength={BRAND.textLength}
-                lengthAdjust="spacingAndGlyphs"
-                fill="none"
-                stroke="rgba(255,255,255,0.95)"
-                strokeWidth="2.5"
-                style={{ fontFamily: "inherit" }}
-              >
-                STUDIO CAVE
-              </text>
-             {/* OUTLINE: SVG stroke-drawing reveal */}
+     {/* OUTLINE: reveals outward from the centre */}
 <g
   style={{
     opacity: 1,
@@ -485,91 +462,93 @@ style={{
     transformOrigin: "720px 440px",
   }}
 >
-  {/* STUDIO CAVE outline */}
-  <text
-    x={BRAND.x}
-    y={BRAND.y}
-    textAnchor="middle"
-    fontSize={BRAND.fontSize}
-    fontWeight={800}
-    textLength={BRAND.textLength}
-    lengthAdjust="spacingAndGlyphs"
-    fill="none"
-    stroke="rgba(255,255,255,0.95)"
-    strokeWidth="2.5"
-    strokeDasharray="6000"
-    strokeDashoffset={6000 * (1 - reveal)}
-    style={{
-      fontFamily: "inherit",
-      strokeLinecap: "round",
-      strokeLinejoin: "round",
-    }}
-  >
-    STUDIO CAVE
-  </text>
+  <clipPath id="win-reveal">
+    <rect
+      x={720 - 720 * reveal}
+      y="0"
+      width={1440 * reveal}
+      height="800"
+    />
+  </clipPath>
 
-  {/* Supporting descriptor outline */}
-  <text
-    x={BRAND.x}
-    y={SUB.y}
-    textAnchor="middle"
-    fontSize={SUB.fontSize}
-    fontWeight={500}
-    textLength={SUB.textLength}
-    lengthAdjust="spacing"
-    fill="none"
-    stroke="rgba(255,255,255,0.9)"
-    strokeWidth="1.2"
-    strokeDasharray="3000"
-    strokeDashoffset={3000 * (1 - reveal)}
-    style={{
-      fontFamily: "inherit",
-      strokeLinecap: "round",
-      strokeLinejoin: "round",
-    }}
-  >
-    ARCHITECTURE · INTERIORS · CONSTRUCTION
-  </text>
+  <g clipPath="url(#win-reveal)">
+    <text
+      x={BRAND.x}
+      y={BRAND.y}
+      textAnchor="middle"
+      fontSize={BRAND.fontSize}
+      fontWeight={800}
+      textLength={BRAND.textLength}
+      lengthAdjust="spacingAndGlyphs"
+      fill="none"
+      stroke="rgba(255,255,255,0.95)"
+      strokeWidth="2.5"
+      style={{ fontFamily: "inherit" }}
+    >
+      STUDIO CAVE
+    </text>
+
+    <text
+      x={BRAND.x}
+      y={SUB.y}
+      textAnchor="middle"
+      fontSize={SUB.fontSize}
+      fontWeight={500}
+      textLength={SUB.textLength}
+      lengthAdjust="spacing"
+      fill="none"
+      stroke="rgba(255,255,255,0.9)"
+      strokeWidth="1.2"
+      style={{ fontFamily: "inherit" }}
+    >
+      ARCHITECTURE · INTERIORS · CONSTRUCTION
+    </text>
+  </g>
 </g>
-            </g>
-          </g>
         </svg>
 
         {/* LOW PUFFY CLOUD BANK (rises first, around the building base) */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-[28] h-[70vh] will-change-transform"
-          style={{ transform: `translateY(${(1 - bankLow) * 100}%)` }}
-        >
-          <Clouds
-            id="banklow"
-            seed={9}
-            gain={6}
-            offset={-2.7}
-            freq="0.006 0.013"
-            shade
-            fadeTop
-          />
-        </div>
+     {/* LOW CLOUD BANK — rises from the bottom, behind the lettering */}
+<div
+  aria-hidden="true"
+  className="pointer-events-none absolute inset-x-0 bottom-0 z-[18] h-[70vh] will-change-transform"
+  style={{
+    transform: `translateY(${(1 - bankLow) * 100}%)`,
+    opacity: bankLow,
+  }}
+>
+  <Clouds
+    id="banklow"
+    seed={9}
+    gain={6}
+    offset={-2.7}
+    freq="0.006 0.013"
+    shade
+    fadeTop
+  />
+</div>
 
-        {/* THICK CLOUD BANK (rises later, covers everything) */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-[110vh] will-change-transform"
-          style={{ transform: `translateY(${(1 - bankHigh) * 100}%)` }}
-        >
-          <Clouds
-            id="bankhigh"
-            seed={4}
-            gain={6}
-            offset={-2.3}
-            freq="0.005 0.011"
-            shade
-            fadeTop
-          />
-          {/* solid white base so the bottom is fully covered */}
-          <div className="absolute inset-x-0 bottom-0 h-[35%] bg-gradient-to-t from-white via-white/90 to-transparent" />
-        </div>
+   {/* THICK CLOUD BANK — rises later, in front of the lettering */}
+<div
+  aria-hidden="true"
+  className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-[110vh] will-change-transform"
+  style={{
+    transform: `translateY(${(1 - bankHigh) * 100}%)`,
+    opacity: bankHigh,
+  }}
+>
+  <Clouds
+    id="bankhigh"
+    seed={4}
+    gain={6}
+    offset={-2.3}
+    freq="0.005 0.011"
+    shade
+    fadeTop
+  />
+
+  <div className="absolute inset-x-0 bottom-0 h-[35%] bg-gradient-to-t from-white via-white/90 to-transparent" />
+</div>
 
         {/* CAPTIONS (fade out first) */}
         <div
