@@ -584,7 +584,7 @@ className="sticky top-0 h-[100svh] w-full overflow-hidden bg-[#e9e8e3] text-[#17
                 <g
   transform={
     isMobile
-      ? "translate(720 400) scale(0.25) translate(-720 -470)"
+      ? "translate(720 400) scale(0.35) translate(-720 -470)"
       : undefined
   }
 >
