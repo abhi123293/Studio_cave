@@ -353,7 +353,7 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
         {/* NAVIGATION (always visible) */}
         <header className="absolute inset-x-0 top-0 z-40 flex items-center justify-between px-6 py-6 md:px-12 lg:px-20">
           <Link href="/" className="text-2xl font-semibold tracking-tight">
-            STUDIO CAVE<span className="text-[#8b927c]">.</span>
+            STUDIO CAVE<span className="text-[#8b927c]"></span>
           </Link>
 
           <nav className="hidden items-center gap-8 text-sm md:flex">
