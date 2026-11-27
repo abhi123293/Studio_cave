@@ -24,3 +24,56 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes cloudDriftA {
+  from {
+    transform: translate3d(-2.5%, 0, 0);
+  }
+  to {
+    transform: translate3d(2.5%, 0, 0);
+  }
+}
+
+@keyframes heroTitleReveal {
+  from {
+    transform: translateY(110%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes heroSupportReveal {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.cloud-drift {
+  animation: cloudDriftA 45s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.hero-title-reveal {
+  display: inline-block;
+  animation: heroTitleReveal 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+}
+
+.hero-support-reveal {
+  animation: heroSupportReveal 0.8s ease 0.45s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cloud-drift,
+  .hero-title-reveal,
+  .hero-support-reveal {
+    animation: none;
+  }
+}
