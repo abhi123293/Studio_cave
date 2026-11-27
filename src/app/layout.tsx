@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import SmoothScroll from "@/components/SmoothScroll";
 import "./globals.css";
+import WhatsAppButton from "@/components/WhatsAppButton";
 import Navbar from "@/components/Navbar";
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <SmoothScroll />
           <Navbar />
+          <WhatsAppButton />
         {children}
       </body>
     </html>

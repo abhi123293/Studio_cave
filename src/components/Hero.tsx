@@ -19,7 +19,7 @@ const range = (p: number, a: number, b: number) => clamp((p - a) / (b - a));
 const ease = (t: number) => t * t * (3 - 2 * t);
 
 /* ---------- Soft realistic clouds (SVG turbulence, no image needed) ---------- */
-function Clouds({
+export function Clouds({
   id,
   seed = 4,
   freq = "0.0035 0.0075", // smaller numbers = bigger clouds
@@ -165,6 +165,7 @@ function letterRect(box: LetterBox, dir: string, t: number) {
 }
 export default function Hero() {
   const wrapRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const targetP = useRef(0);
   const [p, setP] = useState(0); // overall scroll progress 0 → 1
 const [isMobile, setIsMobile] = useState(false);
@@ -223,7 +224,10 @@ useEffect(() => {
       if (!el) return;
 
       const rect = el.getBoundingClientRect();
-      const total = rect.height - window.innerHeight;
+      // use the section's own (fixed) height, NOT window.innerHeight —
+      // on phones innerHeight changes when the address bar hides/shows
+      const viewH = sectionRef.current?.offsetHeight ?? window.innerHeight;
+      const total = rect.height - viewH;
 
       targetP.current = clamp(-rect.top / total);
 
@@ -235,7 +239,7 @@ useEffect(() => {
     const animate = () => {
       const difference = targetP.current - currentP;
 
-  currentP += difference * (window.innerWidth < 768 ? 0.18 : 0.18);
+     currentP += difference * (window.innerWidth < 768 ? 0.13 : 0.18);
 
       if (Math.abs(difference) < 0.0005) {
         currentP = targetP.current;
@@ -249,12 +253,21 @@ useEffect(() => {
 
     measureScroll();
 
+    // only re-measure when the WIDTH changes (phone address bar changes the height while scrolling)
+    let lastW = window.innerWidth;
+    const onResize = () => {
+      if (window.innerWidth !== lastW) {
+        lastW = window.innerWidth;
+        measureScroll();
+      }
+    };
+
     window.addEventListener("scroll", measureScroll, { passive: true });
-    window.addEventListener("resize", measureScroll);
+    window.addEventListener("resize", onResize);
 
     return () => {
       window.removeEventListener("scroll", measureScroll);
-      window.removeEventListener("resize", measureScroll);
+      window.removeEventListener("resize", onResize);
 
       if (raf) cancelAnimationFrame(raf);
     };
@@ -298,20 +311,18 @@ const windowIn = ease(
   const bankLowY = 70 * (1 - bankLow); // 55% → 0%
 
   // thick final bank: rises and covers everything
-  const bankHigh = ease(range(p, 0.55, 0.92));
+  const bankHigh = ease(range(p, 0.5, 0.97)); // slow rise: the clouds climb over the content
 
   // fade to white
-  const whiteOut = ease(range(p, 0.9, 1));
+  const whiteOut = ease(range(p, 0.98, 1)); // tiny safety fade only at the very end
 
   return (
     // tall wrapper = scroll distance for the animation
-    <div
-  ref={wrapRef}
-  className={`relative ${isMobile ? "h-[400vh]" : "h-[550vh]"}`}
->
+    <div ref={wrapRef} className="relative h-[400vh] md:h-[550vh]">
       <section
+        ref={sectionRef}
         id="home"
-className="sticky top-0 h-[100svh] w-full overflow-hidden bg-[#e9e8e3] text-[#171815]"
+        className="sticky top-0 h-screen w-full overflow-hidden bg-[#e9e8e3] text-[#171815]"
       >
         <style>{`
           @keyframes cloudDriftA { from { transform: translateX(-2.5%); } to { transform: translateX(2.5%); } }
@@ -377,7 +388,7 @@ className="sticky top-0 h-[100svh] w-full overflow-hidden bg-[#e9e8e3] text-[#17
         </div>
 
         {/* NAVIGATION (always visible) */}
-        {/* <header className="absolute inset-x-0 top-0 z-40 flex items-center justify-between px-6 py-6 md:px-12 lg:px-20">
+        <header className="absolute inset-x-0 top-0 z-40 flex items-center justify-between px-6 py-6 md:px-12 lg:px-20">
           <Link href="/" className="text-2xl font-semibold tracking-tight">
             STUDIO CAVE<span className="text-[#8b927c]"></span>
           </Link>
@@ -397,7 +408,7 @@ className="sticky top-0 h-[100svh] w-full overflow-hidden bg-[#e9e8e3] text-[#17
             sign in
             <ArrowUpRight size={16} />
           </Link>
-        </header> */}
+        </header>
 
         {/* BUILDING */}
     <img
@@ -584,7 +595,7 @@ className="sticky top-0 h-[100svh] w-full overflow-hidden bg-[#e9e8e3] text-[#17
                 <g
   transform={
     isMobile
-      ? "translate(720 400) scale(0.35) translate(-720 -470)"
+      ? "translate(720 400) scale(0.25) translate(-720 -470)"
       : undefined
   }
 >
@@ -797,9 +808,11 @@ className="sticky top-0 h-[100svh] w-full overflow-hidden bg-[#e9e8e3] text-[#17
             />
           </div>
         </div>
+        {/* FINAL CLOUD BANK — rises slowly over the content; solid white mass follows it,
+            so the next section starts inside the white cloud */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-[115vh] will-change-transform"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-[200vh] will-change-transform"
           style={{ transform: `translateY(${(1 - bankHigh) * 100}%)` }}
         >
           <Clouds
@@ -812,7 +825,14 @@ className="sticky top-0 h-[100svh] w-full overflow-hidden bg-[#e9e8e3] text-[#17
             shade
             fadeTop
           />
-          <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-white via-white to-transparent" />
+          {/* solid white body below the cloud edge */}
+          <div
+            className="absolute inset-x-0 bottom-0 h-[60%]"
+            style={{
+              background:
+                "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 25%, #fff 40%)",
+            }}
+          />
         </div>
 
         {/* CAPTIONS (fade out first) */}
