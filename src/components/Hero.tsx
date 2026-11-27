@@ -442,7 +442,7 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
   >
     {/* pb / -mb stop the reveal wrapper from clipping g, p, y */}
     <div className="overflow-hidden pb-[0.18em] -mb-[0.18em]">
-      <h1 className="text-[clamp(2.5rem,8vw,110px)] font-extrabold leading-[1.02] tracking-[-0.045em] text-[#171815]">
+      <h1 className="text-[clamp(2.1rem,7vw,90px)] font-extrabold leading-[1.02] tracking-[-0.045em] text-[#171815]">
         <span className="hero-title-reveal block">Designing Spaces.</span>
         <span
           className="hero-title-reveal block"
@@ -463,15 +463,24 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
       pointerEvents: textOut > 0.6 ? "none" : "auto",
     }}
   >
-   <div className="hero-support-reveal">
-  <p className="mx-auto mt-9 max-w-2xl text-base leading-7 md:text-lg">
-    <span className="font-medium text-[#252923]">
+<div className="hero-support-reveal">
+  <p className="mx-auto mt-9 max-w-3xl text-lg font-medium leading-8 md:text-xl">
+    <span className="font-semibold text-[#252923]">
       Transforming ideas into exceptional spaces
     </span>{" "}
-    <span className="font-normal text-[#78858A]">
+    <span className="font-medium text-[#78858A]">
       through architecture, interior design, construction and turnkey solutions.
     </span>
   </p>
+  <div className="mt-5 flex justify-center">
+  <Link
+    href="/properties"
+    className="inline-flex items-center gap-3 rounded-full bg-[#171815] px-6 py-3 text-sm font-semibold text-white transition-all duration-300 hover:bg-[#45483d] hover:scale-105"
+  >
+    Find Properties
+    <ArrowUpRight size={15} />
+  </Link>
+</div>
 </div>
   </div>
 </div>
