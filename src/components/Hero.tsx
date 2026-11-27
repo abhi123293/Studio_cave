@@ -235,7 +235,7 @@ useEffect(() => {
     const animate = () => {
       const difference = targetP.current - currentP;
 
-     currentP += difference * (window.innerWidth < 768 ? 0.13 : 0.18);
+  currentP += difference * (window.innerWidth < 768 ? 0.18 : 0.18);
 
       if (Math.abs(difference) < 0.0005) {
         currentP = targetP.current;
@@ -311,7 +311,7 @@ const windowIn = ease(
 >
       <section
         id="home"
-        className="sticky top-0 h-screen w-full overflow-hidden bg-[#e9e8e3] text-[#171815]"
+className="sticky top-0 h-[100svh] w-full overflow-hidden bg-[#e9e8e3] text-[#171815]"
       >
         <style>{`
           @keyframes cloudDriftA { from { transform: translateX(-2.5%); } to { transform: translateX(2.5%); } }
@@ -377,7 +377,7 @@ const windowIn = ease(
         </div>
 
         {/* NAVIGATION (always visible) */}
-        <header className="absolute inset-x-0 top-0 z-40 flex items-center justify-between px-6 py-6 md:px-12 lg:px-20">
+        {/* <header className="absolute inset-x-0 top-0 z-40 flex items-center justify-between px-6 py-6 md:px-12 lg:px-20">
           <Link href="/" className="text-2xl font-semibold tracking-tight">
             STUDIO CAVE<span className="text-[#8b927c]"></span>
           </Link>
@@ -397,7 +397,7 @@ const windowIn = ease(
             sign in
             <ArrowUpRight size={16} />
           </Link>
-        </header>
+        </header> */}
 
         {/* BUILDING */}
     <img
