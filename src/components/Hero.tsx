@@ -3,35 +3,45 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, ArrowDown } from "lucide-react";
 
-const BUILDING = "/images/studio-cave-building.png";
-
+const BUILDING = "/images/building.png";
+// BUILDING IMAGE SETTINGS — adjust these when changing the image
+const BUILDING_SETTINGS = {
+  width: "1500px",
+  bottom: "-55vh",
+  initialScale: 1,
+  scrollScale: 0.35,
+  scrollY: 85,
+  origin: "50% 75%",
+};
 const clamp = (n: number, min = 0, max = 1) => Math.min(max, Math.max(min, n));
 // 0 → 1 progress between two scroll points
 const range = (p: number, a: number, b: number) => clamp((p - a) / (b - a));
 const ease = (t: number) => t * t * (3 - 2 * t);
 
-/* ---------- Realistic clouds (SVG turbulence, no image needed) ---------- */
+/* ---------- Soft realistic clouds (SVG turbulence, no image needed) ---------- */
 function Clouds({
   id,
-  seed = 11,
-  gain = 4.2, // higher = sharper, puffier edges
-  offset = -1.75, // lower = fewer clouds
-  freq = "0.0038 0.0075", // smaller numbers = bigger clouds
-  shade = false, // adds the grey shaded underside (3D puffy look)
+  seed = 4,
+  freq = "0.0035 0.0075", // smaller numbers = bigger clouds
+  gain = 3.4, // higher = denser / whiter clouds
+  offset = -1.5, // lower = fewer clouds
+  blur = 4, // soft edges
+  shade = false, // soft pink/grey underside (3D look)
   fadeTop = false, // soft fade on the top edge
   className = "",
 }: {
   id: string;
   seed?: number;
+  freq?: string;
   gain?: number;
   offset?: number;
-  freq?: string;
+  blur?: number;
   shade?: boolean;
   fadeTop?: boolean;
   className?: string;
 }) {
   const fade = fadeTop
-    ? "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.35) 18%, rgba(0,0,0,0.8) 38%, #000 55%)"
+    ? "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 25%, #000 50%)"
     : undefined;
 
   return (
@@ -43,6 +53,7 @@ function Clouds({
       style={{ WebkitMaskImage: fade, maskImage: fade }}
     >
       <defs>
+        {/* white cloud body */}
         <filter
           id={`${id}-f`}
           x="0"
@@ -54,15 +65,17 @@ function Clouds({
           <feTurbulence
             type="fractalNoise"
             baseFrequency={freq}
-            numOctaves="6"
+            numOctaves="5"
             seed={seed}
           />
           <feColorMatrix
             type="matrix"
             values={`0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 ${gain} ${offset}`}
           />
+          <feGaussianBlur stdDeviation={blur} />
         </filter>
 
+        {/* soft lavender-pink underside */}
         <filter
           id={`${id}-s`}
           x="0"
@@ -74,14 +87,14 @@ function Clouds({
           <feTurbulence
             type="fractalNoise"
             baseFrequency={freq}
-            numOctaves="6"
+            numOctaves="5"
             seed={seed}
           />
           <feColorMatrix
             type="matrix"
-            values={`0 0 0 0 0.52  0 0 0 0 0.58  0 0 0 0 0.7  0 0 0 ${gain} ${offset + 0.4}`}
+            values={`0 0 0 0 0.78  0 0 0 0 0.74  0 0 0 0 0.84  0 0 0 ${gain} ${offset + 0.12}`}
           />
-          <feGaussianBlur stdDeviation="5" />
+          <feGaussianBlur stdDeviation={blur + 8} />
         </filter>
       </defs>
 
@@ -90,8 +103,8 @@ function Clouds({
           width="1440"
           height="800"
           filter={`url(#${id}-s)`}
-          transform="translate(0 14)"
-          opacity="0.55"
+          transform="translate(0 22)"
+          opacity="0.5"
         />
       )}
       <rect width="1440" height="800" filter={`url(#${id}-f)`} />
@@ -101,7 +114,7 @@ function Clouds({
 
 // keeps the middle of the sky clear (behind the headline); clouds sit at the edges
 const EDGE_MASK =
-  "radial-gradient(ellipse 40% 60% at 50% 40%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 55%, #000 100%)";
+  "radial-gradient(ellipse 40% 60% at 50% 40%, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.45) 55%, #000 100%)";
 
 /* ---------- Brand text settings (shared by the window cut-out and the outline) ---------- */
 const BRAND = {
@@ -122,138 +135,116 @@ export default function Hero() {
   const targetP = useRef(0);
   const [p, setP] = useState(0); // overall scroll progress 0 → 1
 
-useEffect(() => {
-  let raf = 0;
-  let currentP = 0;
+  useEffect(() => {
+    let raf = 0;
+    let currentP = 0;
 
-  const measureScroll = () => {
-    const el = wrapRef.current;
-    if (!el) return;
+    const measureScroll = () => {
+      const el = wrapRef.current;
+      if (!el) return;
 
-    const rect = el.getBoundingClientRect();
-    const total = rect.height - window.innerHeight;
+      const rect = el.getBoundingClientRect();
+      const total = rect.height - window.innerHeight;
 
-    targetP.current = clamp(-rect.top / total);
+      targetP.current = clamp(-rect.top / total);
 
-    if (!raf) {
-      raf = requestAnimationFrame(animate);
-    }
-  };
+      if (!raf) {
+        raf = requestAnimationFrame(animate);
+      }
+    };
 
-  const animate = () => {
-    const difference = targetP.current - currentP;
+    const animate = () => {
+      const difference = targetP.current - currentP;
 
-   currentP += difference * 0.18;
+      currentP += difference * 0.18;
 
-    if (Math.abs(difference) < 0.0005) {
-      currentP = targetP.current;
-      raf = 0;
-    } else {
-      raf = requestAnimationFrame(animate);
-    }
+      if (Math.abs(difference) < 0.0005) {
+        currentP = targetP.current;
+        raf = 0;
+      } else {
+        raf = requestAnimationFrame(animate);
+      }
 
-    setP(currentP);
-  };
+      setP(currentP);
+    };
 
-  measureScroll();
+    measureScroll();
 
-  window.addEventListener("scroll", measureScroll, { passive: true });
-  window.addEventListener("resize", measureScroll);
+    window.addEventListener("scroll", measureScroll, { passive: true });
+    window.addEventListener("resize", measureScroll);
 
-  return () => {
-    window.removeEventListener("scroll", measureScroll);
-    window.removeEventListener("resize", measureScroll);
+    return () => {
+      window.removeEventListener("scroll", measureScroll);
+      window.removeEventListener("resize", measureScroll);
 
-    if (raf) cancelAnimationFrame(raf);
-  };
-}, []);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
 
   /* ---------- animation timeline ---------- */
-  // building starts low, then zooms upward (stays visible behind the letters)
-// Building rises gradually over a longer scroll interval
-const zoom = ease(range(p, 0.05, 0.78));
+  // building rises gradually
+  const zoom = ease(range(p, 0.05, 0.78));
+const buildingScale =
+  BUILDING_SETTINGS.initialScale +
+  zoom * BUILDING_SETTINGS.scrollScale;
 
-const buildingScale = 1 + zoom * 0.35;
-const buildingY = -zoom * 85;
+const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
+  // headline moves down + fades as soon as scrolling starts
+  const textOut = ease(range(p, 0.02, 0.28));
+  const textMove = ease(range(p, 0.01, 0.3));
 
-  // headline block fades out FAST so the name can appear right away
- // Supporting content disappears first
-// Subtitle disappears earlier
-const supportOut = ease(range(p, 0.08, 0.28));
+  // outline "STUDIO CAVE" draws outward from the centre
+  const reveal = ease(range(p, 0.2, 0.48));
 
-// Main heading changes colour first
-// Heading and paragraph move down and fade out
-// Heading starts moving as soon as scrolling begins
-// Start moving as soon as the user scrolls
-const textOut = ease(range(p, 0.02, 0.28));
-const textMove = ease(range(p, 0.01, 0.30));
+  // sky layer with the letter cut-out fades in
+  const windowIn = ease(range(p, 0.42, 0.52));
 
-  // 1) outline text wipes in left → right
-// Draw the STUDIO CAVE outline as the first heading disappears
-const reveal = ease(range(p, 0.20, 0.48));
+  // ----- CLOUDS (visible from the very first frame, grow with the scroll) -----
+  // side clouds: already in the sky, slowly swell outward
+  const sideGrow = ease(range(p, 0, 0.85));
+  const sideScale = 1 + sideGrow * 0.3;
+  const sideOpacity = 1 - range(p, 0.8, 0.95);
 
-// Reveal the sky and cloud layer after the outline
-const windowIn = ease(range(p, 0.48, 0.58));
+  // front cloud bank: starts ALREADY peeking at the bottom, rises with the building
+  const bankLow = ease(range(p, 0, 0.75));
+  const bankLowY = 55 * (1 - bankLow); // 55% → 0%
 
-  // ----- CLOUDS -----
-  const sideGrow = ease(range(p, 0, 0.7));
-  const sideScale = 1 + sideGrow * 0.35;
-  const sideOpacity = 1 - range(p, 0.72, 0.92);
-
-// First cloud bank starts after the building has nearly finished moving
-// Building animation finishes around p = 0.78.
-// Only then do the clouds start rising.
-const bankLow = ease(range(p, 0.78, 0.93));
-const bankHigh = ease(range(p, 0.84, 0.98));
+  // thick final bank: rises and covers everything
+  const bankHigh = ease(range(p, 0.55, 0.92));
 
   // fade to white
-const whiteOut = ease(range(p, 0.97, 1));
+  const whiteOut = ease(range(p, 0.9, 1));
 
   return (
     // tall wrapper = scroll distance for the animation
-   <div ref={wrapRef} className="relative h-[650vh]">
+    <div ref={wrapRef} className="relative h-[550vh]">
       <section
         id="home"
         className="sticky top-0 h-screen w-full overflow-hidden bg-[#e9e8e3] text-[#171815]"
       >
-        {/* slow drifting for the side clouds */}
         <style>{`
           @keyframes cloudDriftA { from { transform: translateX(-2.5%); } to { transform: translateX(2.5%); } }
+          @keyframes cloudDriftB { from { transform: translateX(2%); } to { transform: translateX(-2%); } }
           .cloud-drift { animation: cloudDriftA 45s ease-in-out infinite alternate; }
-          @media (prefers-reduced-motion: reduce) { .cloud-drift { animation: none; } }
-        
-       
-       @keyframes heroTitleReveal {
-  from {
-    transform: translateY(110%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
+          .cloud-drift-b { animation: cloudDriftB 38s ease-in-out infinite alternate; }
+          @media (prefers-reduced-motion: reduce) { .cloud-drift, .cloud-drift-b { animation: none; } }
 
-@keyframes heroSupportReveal {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.hero-title-reveal {
-  display: inline-block;
-  animation: heroTitleReveal 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
-}
-
-.hero-support-reveal {
-  animation: heroSupportReveal 0.8s ease 0.45s both;
-}`}
-        </style>
+          @keyframes heroTitleReveal {
+            from { transform: translateY(110%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+          }
+          @keyframes heroSupportReveal {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+          }
+          .hero-title-reveal {
+            display: inline-block;
+            animation: heroTitleReveal 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+          }
+          .hero-support-reveal {
+            animation: heroSupportReveal 0.8s ease 0.45s both;
+          }
+        `}</style>
 
         {/* SKY: blue, warming to peach at the lower left */}
         <div
@@ -264,9 +255,9 @@ const whiteOut = ease(range(p, 0.97, 1));
           }}
         />
 
-        {/* SIDE CLOUD MASSES (behind the building): grow outward on scroll */}
+        {/* SIDE CLOUDS (behind the building): visible from the start, swell on scroll */}
         <div
-          className="pointer-events-none absolute inset-0 z-[5] overflow-hidden"
+          className="pointer-events-none absolute inset-0 z-[5] overflow-hidden will-change-transform"
           style={{
             WebkitMaskImage: EDGE_MASK,
             maskImage: EDGE_MASK,
@@ -280,8 +271,15 @@ const whiteOut = ease(range(p, 0.97, 1));
               transformOrigin: "50% 60%",
             }}
           >
-            <div className="cloud-drift absolute -left-[6%] -right-[6%] bottom-0 top-0 opacity-95">
-              <Clouds id="side" seed={14} gain={4.2} offset={-1.75} freq="0.0038 0.0075" />
+            <div className="cloud-drift absolute -left-[6%] -right-[6%] bottom-0 top-0">
+              <Clouds
+                id="side"
+                seed={14}
+                freq="0.0035 0.0075"
+                gain={3.4}
+                offset={-1.5}
+                blur={4}
+              />
             </div>
           </div>
         </div>
@@ -309,114 +307,181 @@ const whiteOut = ease(range(p, 0.97, 1));
           </Link>
         </header>
 
-        {/* BUILDING (zooms in; stays behind the letter window) */}
-        <img
-          src={BUILDING}
-          alt="Modern architectural building"
-className="pointer-events-none absolute -bottom-[55vh] left-1/2 z-10 w-[110vw] max-w-none select-none will-change-transform md:w-[105vw] lg:w-[1500px]"
-          style={{
-            transformOrigin: "50% 75%",
-            transform: `translate(-50%, ${buildingY}vh) scale(${buildingScale})`,
-          }}
-        />
+        {/* BUILDING */}
+    <img
+  src={BUILDING}
+  alt="Modern architectural building"
+  className="pointer-events-none absolute left-1/2 z-10 max-w-none select-none will-change-transform"
+  style={{
+    width: BUILDING_SETTINGS.width,
+    bottom: BUILDING_SETTINGS.bottom,
+    transformOrigin: BUILDING_SETTINGS.origin,
+    transform: `translate(-50%, ${buildingY}vh) scale(${buildingScale})`,
+  }}
+/>
 
-        {/* HEADLINE BLOCK — CENTERED (fades out on scroll) */}
-  {/* HEADLINE BLOCK */}
-<div className="absolute inset-x-0 top-[16%] flex justify-center px-6 text-center md:top-[17%]">
+        {/* HEADLINE BLOCK */}
+        <div className="absolute inset-x-0 top-[16%] flex justify-center px-6 text-center md:top-[17%]">
+          {/* MAIN HEADING */}
+          <div
+            className="relative z-[8] w-full max-w-5xl"
+            style={{
+              opacity: 1 - textOut,
+              transform: `translateY(${textMove * 110}px)`,
+            }}
+          >
+            <div className="overflow-hidden">
+              <h1 className="whitespace-nowrap text-[clamp(2.5rem,8vw,110px)] font-extrabold leading-none tracking-[-0.055em]">
+                <span className="hero-title-reveal">
+                  Spaces That Move You<span className="text-[#8b927c]">.</span>
+                </span>
+              </h1>
+            </div>
+          </div>
 
-  {/* MAIN HEADING — stays in front of the building */}
-<div
-  className="relative z-[8] w-full max-w-5xl"
-style={{
-  opacity: 1 - textOut,
-  transform: `translateY(${textMove * 110}px)`,
-}}
-  >
-    <div className="overflow-hidden">
-      <h1 className="whitespace-nowrap text-[clamp(2.5rem,8vw,110px)] font-extrabold leading-none tracking-[-0.055em]">
-        <span className="hero-title-reveal">
-          Spaces That Move You<span className="text-[#8b927c]">.</span>
-        </span>
-      </h1>
-    </div>
-  </div>
-
-  {/* SUBTITLE + CTA — building passes in front of these */}
-  <div
-    className="pointer-events-auto absolute inset-x-0 top-full z-[8] px-6"
-   style={{
-  opacity: 1 - textOut,
- transform: `translateY(${textMove * 110}px)`,
-  pointerEvents: textOut > 0.6 ? "none" : "auto",
-}}
-  >
-    <div className="hero-support-reveal">
-      <p className="mx-auto mt-7 max-w-md text-base leading-7 text-[#52656d] md:text-lg">
-        Thoughtfully designed spaces. Meaningful experiences.
-        Built around the way you live.
-      </p>
-
-      
-    </div>
-  </div>
-
-</div>
+          {/* SUBTITLE */}
+          <div
+            className="pointer-events-auto absolute inset-x-0 top-full z-[8] px-6"
+            style={{
+              opacity: 1 - textOut,
+              transform: `translateY(${textMove * 110}px)`,
+              pointerEvents: textOut > 0.6 ? "none" : "auto",
+            }}
+          >
+            <div className="hero-support-reveal">
+              <p className="mx-auto mt-7 max-w-md text-base leading-7 text-[#52656d] md:text-lg">
+                Thoughtfully designed spaces. Meaningful experiences.
+                Built around the way you live.
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* ============================================================ */}
-        {/* LETTER WINDOW: sky + clouds with "STUDIO CAVE" cut out,      */}
-        {/* so the building behind is visible THROUGH the letters.       */}
+        {/* LETTER WINDOW (sky + clouds with "STUDIO CAVE" cut out)      */}
+        {/* The wrapper div fades (cheap) — the SVG inside never changes, */}
+        {/* so the cloud filter is not re-drawn on every scroll frame.   */}
         {/* ============================================================ */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-[22] will-change-[opacity]"
+          style={{ opacity: windowIn }}
+        >
+          <svg
+            viewBox="0 0 1440 800"
+            preserveAspectRatio="xMidYMid slice"
+            className="absolute inset-0 h-full w-full"
+          >
+            <defs>
+              <linearGradient id="win-sky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#8fb6dc" />
+                <stop offset="0.45" stopColor="#b6d0e6" />
+                <stop offset="0.8" stopColor="#dbe4ee" />
+                <stop offset="1" stopColor="#f1ded0" />
+              </linearGradient>
+              <radialGradient id="win-glow" cx="6%" cy="95%" r="65%">
+                <stop offset="0" stopColor="#ffb082" stopOpacity="0.9" />
+                <stop offset="0.5" stopColor="#ffc8a5" stopOpacity="0.45" />
+                <stop offset="1" stopColor="#ffc8a5" stopOpacity="0" />
+              </radialGradient>
+
+              {/* same soft clouds as the side clouds */}
+              <filter
+                id="win-clouds"
+                x="0"
+                y="0"
+                width="100%"
+                height="100%"
+                colorInterpolationFilters="sRGB"
+              >
+                <feTurbulence
+                  type="fractalNoise"
+                  baseFrequency="0.0035 0.0075"
+                  numOctaves="5"
+                  seed="14"
+                />
+                <feColorMatrix
+                  type="matrix"
+                  values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 3.4 -1.5"
+                />
+                <feGaussianBlur stdDeviation="4" />
+              </filter>
+
+              {/* THE CUT-OUT: white = visible, black text = see-through hole */}
+              <mask
+                id="win-mask"
+                maskUnits="userSpaceOnUse"
+                x="0"
+                y="0"
+                width="1440"
+                height="800"
+              >
+                <rect width="1440" height="800" fill="white" />
+                <text
+                  x={BRAND.x}
+                  y={BRAND.y}
+                  textAnchor="middle"
+                  fontSize={BRAND.fontSize}
+                  fontWeight={800}
+                  textLength={BRAND.textLength}
+                  lengthAdjust="spacingAndGlyphs"
+                  fill="black"
+                  style={{ fontFamily: "inherit" }}
+                >
+                  STUDIO CAVE
+                </text>
+                <text
+                  x={BRAND.x}
+                  y={SUB.y}
+                  textAnchor="middle"
+                  fontSize={SUB.fontSize}
+                  fontWeight={500}
+                  textLength={SUB.textLength}
+                  lengthAdjust="spacing"
+                  fill="black"
+                  style={{ fontFamily: "inherit" }}
+                >
+                  ARCHITECTURE · INTERIORS · CONSTRUCTION
+                </text>
+              </mask>
+            </defs>
+
+            <g mask="url(#win-mask)">
+              <rect width="1440" height="800" fill="url(#win-sky)" />
+              <rect width="1440" height="800" fill="url(#win-glow)" />
+              <rect
+                width="1440"
+                height="800"
+                filter="url(#win-clouds)"
+                opacity="0.9"
+              />
+            </g>
+          </svg>
+        </div>
+
+        {/* OUTLINE of the letters: draws outward from the centre */}
         <svg
           aria-hidden="true"
           viewBox="0 0 1440 800"
           preserveAspectRatio="xMidYMid slice"
-          className="pointer-events-none absolute inset-0 z-[22] h-full w-full"
+          className="pointer-events-none absolute inset-0 z-[23] h-full w-full"
         >
-          <defs>
-            {/* same sky as the background */}
-            <linearGradient id="win-sky" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor="#8fb6dc" />
-              <stop offset="0.45" stopColor="#b6d0e6" />
-              <stop offset="0.8" stopColor="#dbe4ee" />
-              <stop offset="1" stopColor="#f1ded0" />
-            </linearGradient>
-            <radialGradient id="win-glow" cx="6%" cy="95%" r="65%">
-              <stop offset="0" stopColor="#ffb082" stopOpacity="0.9" />
-              <stop offset="0.5" stopColor="#ffc8a5" stopOpacity="0.45" />
-              <stop offset="1" stopColor="#ffc8a5" stopOpacity="0" />
-            </radialGradient>
-
-            {/* clouds drawn inside the window layer */}
-            <filter
-              id="win-clouds"
-              x="0"
-              y="0"
-              width="100%"
-              height="100%"
-              colorInterpolationFilters="sRGB"
-            >
-              <feTurbulence
-                type="fractalNoise"
-                baseFrequency="0.0038 0.0075"
-                numOctaves="6"
-                seed="14"
+          <g
+            style={{
+              transform: `scale(${1.05 - reveal * 0.05})`,
+              transformOrigin: "720px 440px",
+            }}
+          >
+            <clipPath id="win-reveal">
+              <rect
+                x={720 - 720 * reveal}
+                y="0"
+                width={1440 * reveal}
+                height="800"
               />
-              <feColorMatrix
-                type="matrix"
-                values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 4.2 -1.85"
-              />
-            </filter>
+            </clipPath>
 
-            {/* THE CUT-OUT: white = visible, black text = see-through hole */}
-            <mask
-              id="win-mask"
-              maskUnits="userSpaceOnUse"
-              x="0"
-              y="0"
-              width="1440"
-              height="800"
-            >
-              <rect width="1440" height="800" fill="white" />
+            <g clipPath="url(#win-reveal)">
               <text
                 x={BRAND.x}
                 y={BRAND.y}
@@ -425,11 +490,14 @@ style={{
                 fontWeight={800}
                 textLength={BRAND.textLength}
                 lengthAdjust="spacingAndGlyphs"
-                fill="black"
+                fill="none"
+                stroke="rgba(255,255,255,0.95)"
+                strokeWidth="2.5"
                 style={{ fontFamily: "inherit" }}
               >
                 STUDIO CAVE
               </text>
+
               <text
                 x={BRAND.x}
                 y={SUB.y}
@@ -438,117 +506,56 @@ style={{
                 fontWeight={500}
                 textLength={SUB.textLength}
                 lengthAdjust="spacing"
-                fill="black"
+                fill="none"
+                stroke="rgba(255,255,255,0.9)"
+                strokeWidth="1.2"
                 style={{ fontFamily: "inherit" }}
               >
                 ARCHITECTURE · INTERIORS · CONSTRUCTION
               </text>
-            </mask>
-          </defs>
-
-          {/* sky + clouds layer with the letter holes */}
-          <g mask="url(#win-mask)" style={{ opacity: windowIn }}>
-            <rect width="1440" height="800" fill="url(#win-sky)" />
-            <rect width="1440" height="800" fill="url(#win-glow)" />
-            <rect width="1440" height="800" filter="url(#win-clouds)" opacity="0.95" />
+            </g>
           </g>
-
-          {/* OUTLINE: wipes in left → right at the very start of the scroll */}
-     {/* OUTLINE: reveals outward from the centre */}
-<g
-  style={{
-    opacity: 1,
-    transform: `scale(${1.05 - reveal * 0.05})`,
-    transformOrigin: "720px 440px",
-  }}
->
-  <clipPath id="win-reveal">
-    <rect
-      x={720 - 720 * reveal}
-      y="0"
-      width={1440 * reveal}
-      height="800"
-    />
-  </clipPath>
-
-  <g clipPath="url(#win-reveal)">
-    <text
-      x={BRAND.x}
-      y={BRAND.y}
-      textAnchor="middle"
-      fontSize={BRAND.fontSize}
-      fontWeight={800}
-      textLength={BRAND.textLength}
-      lengthAdjust="spacingAndGlyphs"
-      fill="none"
-      stroke="rgba(255,255,255,0.95)"
-      strokeWidth="2.5"
-      style={{ fontFamily: "inherit" }}
-    >
-      STUDIO CAVE
-    </text>
-
-    <text
-      x={BRAND.x}
-      y={SUB.y}
-      textAnchor="middle"
-      fontSize={SUB.fontSize}
-      fontWeight={500}
-      textLength={SUB.textLength}
-      lengthAdjust="spacing"
-      fill="none"
-      stroke="rgba(255,255,255,0.9)"
-      strokeWidth="1.2"
-      style={{ fontFamily: "inherit" }}
-    >
-      ARCHITECTURE · INTERIORS · CONSTRUCTION
-    </text>
-  </g>
-</g>
         </svg>
 
-        {/* LOW PUFFY CLOUD BANK (rises first, around the building base) */}
-     {/* LOW CLOUD BANK — rises from the bottom, behind the lettering */}
-<div
-  aria-hidden="true"
-  className="pointer-events-none absolute inset-x-0 bottom-0 z-[18] h-[70vh] will-change-transform"
-  style={{
-    transform: `translateY(${(1 - bankLow) * 100}%)`,
-    opacity: bankLow,
-  }}
->
-  <Clouds
-    id="banklow"
-    seed={9}
-    gain={6}
-    offset={-2.7}
-    freq="0.006 0.013"
-    shade
-    fadeTop
-  />
-</div>
+        {/* FRONT CLOUD BANK — already peeking from the first frame, rises over the building */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[28] h-[50vh] will-change-transform"
+          style={{ transform: `translateY(${bankLowY}%)` }}
+        >
+          <div className="cloud-drift-b absolute -left-[4%] -right-[4%] inset-y-0">
+            <Clouds
+              id="banklow"
+              seed={9}
+              freq="0.0032 0.0065"
+              gain={4}
+              offset={-1.55}
+              blur={5}
+              shade
+              fadeTop
+            />
+          </div>
+          <div className="absolute inset-x-0 bottom-0 h-[35%] bg-gradient-to-t from-white via-white/85 to-transparent" />
+        </div>
 
-   {/* THICK CLOUD BANK — rises later, in front of the lettering */}
-<div
-  aria-hidden="true"
-  className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-[110vh] will-change-transform"
-  style={{
-    transform: `translateY(${(1 - bankHigh) * 100}%)`,
-    opacity: bankHigh,
-  }}
->
-  <Clouds
-    id="bankhigh"
-    seed={4}
-    gain={6}
-    offset={-2.3}
-    freq="0.005 0.011"
-    shade
-    fadeTop
-  />
-
-  <div className="absolute inset-x-0 bottom-0 h-[35%] bg-gradient-to-t from-white via-white/90 to-transparent" />
-</div>
+        {/* THICK FINAL BANK — rises later and covers everything */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-[115vh] will-change-transform"
+          style={{ transform: `translateY(${(1 - bankHigh) * 100}%)` }}
+        >
+          <Clouds
+            id="bankhigh"
+            seed={4}
+            freq="0.0032 0.0065"
+            gain={4}
+            offset={-1.45}
+            blur={5}
+            shade
+            fadeTop
+          />
+          <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-white via-white to-transparent" />
+        </div>
 
         {/* CAPTIONS (fade out first) */}
         <div
