@@ -167,7 +167,21 @@ export default function Hero() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const targetP = useRef(0);
   const [p, setP] = useState(0); // overall scroll progress 0 → 1
+const [isMobile, setIsMobile] = useState(false);
 
+useEffect(() => {
+  const checkMobile = () => {
+    setIsMobile(window.innerWidth < 768);
+  };
+
+  checkMobile();
+
+  window.addEventListener("resize", checkMobile);
+
+  return () => {
+    window.removeEventListener("resize", checkMobile);
+  };
+}, []);
   // measure where each letter of "STUDIO CAVE" sits, so each can be drawn separately
   const measureRef = useRef<SVGTextElement>(null);
   const [boxes, setBoxes] = useState<LetterBox[] | null>(null);
@@ -221,7 +235,7 @@ export default function Hero() {
     const animate = () => {
       const difference = targetP.current - currentP;
 
-      currentP += difference * 0.18;
+     currentP += difference * (window.innerWidth < 768 ? 0.13 : 0.18);
 
       if (Math.abs(difference) < 0.0005) {
         currentP = targetP.current;
@@ -259,10 +273,19 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
   const textMove = ease(range(p, 0.01, 0.3));
 
   // outline "STUDIO CAVE" draws outward from the centre
-  const reveal = ease(range(p, 0.2, 0.48));
-  const revealRaw = range(p, 0.2, 0.48); // straight 0 → 1, used for the per-letter timing
-  // sky layer with the letter cut-out fades in
-  const windowIn = ease(range(p, 0.42, 0.52));
+const reveal = ease(
+  range(p, isMobile ? 0.16 : 0.2, isMobile ? 0.38 : 0.48)
+);
+
+const revealRaw = range(
+  p,
+  isMobile ? 0.16 : 0.2,
+  isMobile ? 0.38 : 0.48
+);
+
+const windowIn = ease(
+  range(p, isMobile ? 0.34 : 0.42, isMobile ? 0.43 : 0.52)
+);
 
   // ----- CLOUDS (visible from the very first frame, grow with the scroll) -----
   // side clouds: already in the sky, slowly swell outward
@@ -282,7 +305,10 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
 
   return (
     // tall wrapper = scroll distance for the animation
-    <div ref={wrapRef} className="relative h-[550vh]">
+    <div
+  ref={wrapRef}
+  className={`relative ${isMobile ? "h-[400vh]" : "h-[550vh]"}`}
+>
       <section
         id="home"
         className="sticky top-0 h-screen w-full overflow-hidden bg-[#e9e8e3] text-[#171815]"
@@ -378,19 +404,25 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
   src={BUILDING}
   alt="Modern architectural building"
   className="pointer-events-none absolute left-1/2 z-10 max-w-none select-none will-change-transform"
-  style={{
-    width: BUILDING_SETTINGS.width,
-    bottom: BUILDING_SETTINGS.bottom,
-    transformOrigin: BUILDING_SETTINGS.origin,
-    transform: `translate(-50%, ${buildingY}vh) scale(${buildingScale})`,
-  }}
+ style={{
+  width: isMobile ? "900px" : BUILDING_SETTINGS.width,
+  bottom: isMobile ? "-18vh" : BUILDING_SETTINGS.bottom,
+  transformOrigin: BUILDING_SETTINGS.origin,
+  transform: `translate(-50%, ${
+    isMobile ? -zoom * 45 : buildingY
+  }vh) scale(${
+    isMobile
+      ? 0.85 + zoom * 0.2
+      : buildingScale
+  })`,
+}}
 />
 
         {/* HEADLINE BLOCK */}
                 {/* SMALL CLOUDS at the top edges of the heading (behind the text) */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-[9]"
+         className="pointer-events-none absolute inset-0 z-[7] md:z-[9]"
           style={{
             opacity: 1 - textOut,
             transform: `translateY(${textMove * 60}px)`,
@@ -431,7 +463,7 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
           </div>
         </div>
  
-<div className="absolute inset-x-0 top-[16%] flex justify-center px-6 text-center md:top-[17%]">
+<div className="absolute inset-x-0 top-[19%] flex justify-center px-4 text-center md:top-[17%]">
   {/* MAIN HEADING */}
   <div
     className="relative z-[8] w-full max-w-none"
@@ -442,7 +474,7 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
   >
     {/* pb / -mb stop the reveal wrapper from clipping g, p, y */}
     <div className="overflow-hidden pb-[0.18em] -mb-[0.18em]">
-      <h1 className="text-[clamp(2.1rem,7vw,90px)] font-extrabold leading-[1.02] tracking-[-0.045em] text-[#171815]">
+   <h1 className="text-[clamp(2rem,8.2vw,90px)] font-extrabold leading-[1.08] tracking-[-0.045em] text-[#171815] md:leading-[1.02]">
         <span className="hero-title-reveal block">Designing Spaces.</span>
         <span
           className="hero-title-reveal block"
@@ -464,7 +496,7 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
     }}
   >
 <div className="hero-support-reveal">
-  <p className="mx-auto mt-9 max-w-3xl text-lg font-medium leading-8 md:text-xl">
+  <p className="mx-auto mt-5 max-w-3xl text-[14px] font-medium leading-6 sm:text-base md:mt-9 md:text-xl md:leading-8">
     <span className="font-semibold text-[#252923]">
       Transforming ideas into exceptional spaces
     </span>{" "}
@@ -475,7 +507,7 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
   <div className="mt-5 flex justify-center">
   <Link
     href="/properties"
-    className="inline-flex items-center gap-3 rounded-full bg-[#171815] px-6 py-3 text-sm font-semibold text-white transition-all duration-300 hover:bg-[#45483d] hover:scale-105"
+   className="inline-flex items-center gap-2 rounded-full bg-[#171815] px-5 py-3 text-xs font-semibold text-white transition-all duration-300 hover:bg-[#45483d] hover:scale-105 md:gap-3 md:px-6 md:text-sm"
   >
     Find Properties
     <ArrowUpRight size={15} />
@@ -496,8 +528,11 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
           style={{ opacity: windowIn }}
         >
           <svg
-            viewBox="0 0 1440 800"
-            preserveAspectRatio="xMidYMid slice"
+  viewBox="0 0 1440 800"
+  preserveAspectRatio="xMidYMid slice"
+  style={{
+    overflow: "visible",
+  }}
             className="absolute inset-0 h-full w-full"
           >
             <defs>
@@ -545,6 +580,14 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
                 height="800"
               >
                 <rect width="1440" height="800" fill="white" />
+
+                <g
+  transform={
+    isMobile
+      ? "translate(720 400) scale(0.25) translate(-720 -470)"
+      : undefined
+  }
+>
                 <text
                   x={BRAND.x}
                   y={BRAND.y}
@@ -571,6 +614,7 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
                 >
                   ARCHITECTURE · INTERIORS · CONSTRUCTION
                 </text>
+                </g>
               </mask>
             </defs>
 
@@ -620,12 +664,19 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
             </clipPath>
           </defs>
 
-          <g
-            style={{
-              transform: `scale(${1.05 - reveal * 0.05})`,
-              transformOrigin: "720px 440px",
-            }}
-          >
+     <g
+  transform={
+    isMobile
+  ? `translate(720 400) scale(0.25) translate(-720 -470)`
+      : undefined
+  }
+  style={{
+    transform: isMobile
+      ? undefined
+      : `scale(${1.05 - reveal * 0.05})`,
+    transformOrigin: "720px 440px",
+  }}
+>
             {/* invisible copy, only used to measure each letter */}
             <text
               ref={measureRef}
