@@ -7,7 +7,7 @@ const BUILDING = "/images/building.png";
 // BUILDING IMAGE SETTINGS — adjust these when changing the image
 const BUILDING_SETTINGS = {
   width: "1500px",
-  bottom: "-55vh",
+  bottom: "-75vh",
   initialScale: 1,
   scrollScale: 0.35,
   scrollY: 85,
@@ -28,6 +28,8 @@ function Clouds({
   blur = 4, // soft edges
   shade = false, // soft pink/grey underside (3D look)
   fadeTop = false, // soft fade on the top edge
+  softSides = false, // soft fade on left/right edges (no hard box edges)
+  customMask, // any CSS mask (e.g. a round blob for small clouds)
   className = "",
 }: {
   id: string;
@@ -38,11 +40,18 @@ function Clouds({
   blur?: number;
   shade?: boolean;
   fadeTop?: boolean;
+  softSides?: boolean;
+  customMask?: string;
   className?: string;
 }) {
-  const fade = fadeTop
+  const vFade = fadeTop
     ? "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 25%, #000 50%)"
     : undefined;
+  const hFade = softSides
+    ? "linear-gradient(to right, transparent 0%, #000 16%, #000 84%, transparent 100%)"
+    : undefined;
+  const fade =
+    customMask ?? ([vFade, hFade].filter(Boolean).join(", ") || undefined);
 
   return (
     <svg
@@ -50,7 +59,12 @@ function Clouds({
       viewBox="0 0 1440 800"
       preserveAspectRatio="xMidYMid slice"
       className={`pointer-events-none absolute inset-0 h-full w-full ${className}`}
-      style={{ WebkitMaskImage: fade, maskImage: fade }}
+      style={{
+        WebkitMaskImage: fade,
+        maskImage: fade,
+        WebkitMaskComposite: "source-in",
+        maskComposite: "intersect",
+      }}
     >
       <defs>
         {/* white cloud body */}
@@ -116,6 +130,9 @@ function Clouds({
 const EDGE_MASK =
   "radial-gradient(ellipse 40% 60% at 50% 40%, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.45) 55%, #000 100%)";
 
+// round soft mask for small clouds: fades on ALL sides, so no box edges ever show
+const BLOB_MASK =
+  "radial-gradient(ellipse 50% 50% at 50% 50%, #000 25%, rgba(0,0,0,0.5) 55%, transparent 78%)";
 /* ---------- Brand text settings (shared by the window cut-out and the outline) ---------- */
 const BRAND = {
   x: 720,
@@ -129,12 +146,60 @@ const SUB = {
   fontSize: 40,
   textLength: 880,
 };
+/* ---------- Letter-by-letter outline reveal ---------- */
+const BRAND_TEXT = "STUDIO CAVE";
+// when each letter STARTS drawing (0 → 1 of the reveal). Mixed order = random feel.
+//            S    T    U    D    I    O   (space)  C    A    V    E
+const LETTER_START = [0.3, 0.0, 0.45, 0.15, 0.05, 0.38, 0, 0.22, 0.5, 0.1, 0.35];
+// how each letter is drawn: l2r = left→right, r2l = right→left, b2t = bottom→top, t2b = top→bottom
+const LETTER_DIR = ["l2r", "b2t", "l2r", "t2b", "b2t", "r2l", "", "l2r", "b2t", "l2r", "t2b"];
+const LETTER_DUR = 0.45; // how long one letter takes to draw
 
+type LetterBox = { x: number; y: number; w: number; h: number };
+
+function letterRect(box: LetterBox, dir: string, t: number) {
+  if (dir === "r2l") return { x: box.x + box.w * (1 - t), y: box.y, width: box.w * t, height: box.h };
+  if (dir === "b2t") return { x: box.x, y: box.y + box.h * (1 - t), width: box.w, height: box.h * t };
+  if (dir === "t2b") return { x: box.x, y: box.y, width: box.w, height: box.h * t };
+  return { x: box.x, y: box.y, width: box.w * t, height: box.h }; // l2r
+}
 export default function Hero() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const targetP = useRef(0);
   const [p, setP] = useState(0); // overall scroll progress 0 → 1
 
+  // measure where each letter of "STUDIO CAVE" sits, so each can be drawn separately
+  const measureRef = useRef<SVGTextElement>(null);
+  const [boxes, setBoxes] = useState<LetterBox[] | null>(null);
+
+  useEffect(() => {
+    const measure = () => {
+      const t = measureRef.current;
+      if (!t) return;
+      try {
+        const out: LetterBox[] = [];
+        for (let i = 0; i < BRAND_TEXT.length; i++) {
+          const e = t.getExtentOfChar(i);
+          out.push({ x: e.x, y: e.y, w: e.width, h: e.height });
+        }
+        setBoxes(out);
+      } catch {
+        /* fallback boxes are used */
+      }
+    };
+    measure();
+    document.fonts?.ready.then(measure);
+  }, []);
+
+  // fallback boxes (equal widths) until the real ones are measured
+  const letterBoxes: LetterBox[] =
+    boxes ??
+    BRAND_TEXT.split("").map((_, i) => ({
+      x: BRAND.x - BRAND.textLength / 2 + (i * BRAND.textLength) / BRAND_TEXT.length,
+      y: BRAND.y - BRAND.fontSize * 0.8,
+      w: BRAND.textLength / BRAND_TEXT.length,
+      h: BRAND.fontSize,
+    }));
   useEffect(() => {
     let raf = 0;
     let currentP = 0;
@@ -195,7 +260,7 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
 
   // outline "STUDIO CAVE" draws outward from the centre
   const reveal = ease(range(p, 0.2, 0.48));
-
+  const revealRaw = range(p, 0.2, 0.48); // straight 0 → 1, used for the per-letter timing
   // sky layer with the letter cut-out fades in
   const windowIn = ease(range(p, 0.42, 0.52));
 
@@ -207,7 +272,7 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
 
   // front cloud bank: starts ALREADY peeking at the bottom, rises with the building
   const bankLow = ease(range(p, 0, 0.75));
-  const bankLowY = 55 * (1 - bankLow); // 55% → 0%
+  const bankLowY = 70 * (1 - bankLow); // 55% → 0%
 
   // thick final bank: rises and covers everything
   const bankHigh = ease(range(p, 0.55, 0.92));
@@ -281,6 +346,7 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
                 blur={4}
               />
             </div>
+            
           </div>
         </div>
 
@@ -302,7 +368,7 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
             href="#contact"
             className="flex items-center gap-2 rounded-full bg-[#171815] px-5 py-3 text-sm text-white transition hover:bg-[#45483d]"
           >
-            Get in Touch
+            sign in
             <ArrowUpRight size={16} />
           </Link>
         </header>
@@ -321,41 +387,94 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
 />
 
         {/* HEADLINE BLOCK */}
-        <div className="absolute inset-x-0 top-[16%] flex justify-center px-6 text-center md:top-[17%]">
-          {/* MAIN HEADING */}
-          <div
-            className="relative z-[8] w-full max-w-5xl"
-            style={{
-              opacity: 1 - textOut,
-              transform: `translateY(${textMove * 110}px)`,
-            }}
-          >
-            <div className="overflow-hidden">
-              <h1 className="whitespace-nowrap text-[clamp(2.5rem,8vw,110px)] font-extrabold leading-none tracking-[-0.055em]">
-                <span className="hero-title-reveal">
-                  Spaces That Move You<span className="text-[#8b927c]">.</span>
-                </span>
-              </h1>
-            </div>
+                {/* SMALL CLOUDS at the top edges of the heading (behind the text) */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-[9]"
+          style={{
+            opacity: 1 - textOut,
+            transform: `translateY(${textMove * 60}px)`,
+          }}
+        >
+          <div className="cloud-drift absolute -left-[0vw] top-[7%] h-[24vh] w-[30vw]">
+            <Clouds
+              id="hl"
+              seed={31}
+              freq="0.004 0.009"
+              gain={3.2}
+              offset={-1.0}
+              blur={6}
+              customMask={BLOB_MASK}
+            />
           </div>
-
-          {/* SUBTITLE */}
-          <div
-            className="pointer-events-auto absolute inset-x-0 top-full z-[8] px-6"
-            style={{
-              opacity: 1 - textOut,
-              transform: `translateY(${textMove * 110}px)`,
-              pointerEvents: textOut > 0.6 ? "none" : "auto",
-            }}
-          >
-            <div className="hero-support-reveal">
-              <p className="mx-auto mt-7 max-w-md text-base leading-7 text-[#52656d] md:text-lg">
-                Thoughtfully designed spaces. Meaningful experiences.
-                Built around the way you live.
-              </p>
-            </div>
+          <div className="cloud-drift-b absolute -right-[0vw] top-[9%] h-[26vh] w-[32vw]">
+            <Clouds
+              id="hr"
+              seed={17}
+              freq="0.004 0.009"
+              gain={3.2}
+              offset={-1.0}
+              blur={6}
+              customMask={BLOB_MASK}
+            />
+          </div>
+          <div className="cloud-drift absolute right-[18vw] top-[3%] h-[14vh] w-[18vw]">
+            <Clouds
+              id="hs"
+              seed={8}
+              freq="0.006 0.013"
+              gain={3.2}
+              offset={-1.0}
+              blur={5}
+              customMask={BLOB_MASK}
+            />
           </div>
         </div>
+ 
+<div className="absolute inset-x-0 top-[16%] flex justify-center px-6 text-center md:top-[17%]">
+  {/* MAIN HEADING */}
+  <div
+    className="relative z-[8] w-full max-w-none"
+    style={{
+      opacity: 1 - textOut,
+      transform: `translateY(${textMove * 110}px)`,
+    }}
+  >
+    {/* pb / -mb stop the reveal wrapper from clipping g, p, y */}
+    <div className="overflow-hidden pb-[0.18em] -mb-[0.18em]">
+      <h1 className="text-[clamp(2.5rem,8vw,110px)] font-extrabold leading-[1.02] tracking-[-0.045em] text-[#171815]">
+        <span className="hero-title-reveal block">Designing Spaces.</span>
+        <span
+          className="hero-title-reveal block"
+          style={{ animationDelay: "0.3s" }}
+        >
+          Building Experiences.
+        </span>
+      </h1>
+    </div>
+  </div>
+
+  {/* SUBTITLE */}
+  <div
+    className="pointer-events-auto absolute inset-x-0 top-full z-[8] px-6"
+    style={{
+      opacity: 1 - textOut,
+      transform: `translateY(${textMove * 110}px)`,
+      pointerEvents: textOut > 0.6 ? "none" : "auto",
+    }}
+  >
+   <div className="hero-support-reveal">
+  <p className="mx-auto mt-9 max-w-2xl text-base leading-7 md:text-lg">
+    <span className="font-medium text-[#252923]">
+      Transforming ideas into exceptional spaces
+    </span>{" "}
+    <span className="font-normal text-[#78858A]">
+      through architecture, interior design, construction and turnkey solutions.
+    </span>
+  </p>
+</div>
+  </div>
+</div>
 
         {/* ============================================================ */}
         {/* LETTER WINDOW (sky + clouds with "STUDIO CAVE" cut out)      */}
@@ -460,44 +579,85 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
         </div>
 
         {/* OUTLINE of the letters: draws outward from the centre */}
+            {/* OUTLINE of the letters: every letter is drawn on its own, in its own direction */}
         <svg
           aria-hidden="true"
           viewBox="0 0 1440 800"
           preserveAspectRatio="xMidYMid slice"
           className="pointer-events-none absolute inset-0 z-[23] h-full w-full"
         >
+          <defs>
+            {BRAND_TEXT.split("").map((ch, i) => {
+              if (ch === " ") return null;
+              const t = ease(
+                range(revealRaw, LETTER_START[i], LETTER_START[i] + LETTER_DUR)
+              );
+              const r = letterRect(letterBoxes[i], LETTER_DIR[i], t);
+              return (
+                <clipPath key={i} id={`letter-clip-${i}`}>
+                  <rect x={r.x} y={r.y} width={r.width} height={r.height} />
+                </clipPath>
+              );
+            })}
+
+            {/* subtitle: draws left → right after the big letters */}
+            <clipPath id="sub-clip">
+              <rect
+                x={BRAND.x - SUB.textLength / 2 - 6}
+                y={SUB.y - SUB.fontSize}
+                width={(SUB.textLength + 12) * ease(range(revealRaw, 0.6, 1))}
+                height={SUB.fontSize * 1.6}
+              />
+            </clipPath>
+          </defs>
+
           <g
             style={{
               transform: `scale(${1.05 - reveal * 0.05})`,
               transformOrigin: "720px 440px",
             }}
           >
-            <clipPath id="win-reveal">
-              <rect
-                x={720 - 720 * reveal}
-                y="0"
-                width={1440 * reveal}
-                height="800"
-              />
-            </clipPath>
+            {/* invisible copy, only used to measure each letter */}
+            <text
+              ref={measureRef}
+              x={BRAND.x}
+              y={BRAND.y}
+              textAnchor="middle"
+              fontSize={BRAND.fontSize}
+              fontWeight={800}
+              textLength={BRAND.textLength}
+              lengthAdjust="spacingAndGlyphs"
+              fill="none"
+              opacity={0}
+              style={{ fontFamily: "inherit" }}
+            >
+              {BRAND_TEXT}
+            </text>
 
-            <g clipPath="url(#win-reveal)">
-              <text
-                x={BRAND.x}
-                y={BRAND.y}
-                textAnchor="middle"
-                fontSize={BRAND.fontSize}
-                fontWeight={800}
-                textLength={BRAND.textLength}
-                lengthAdjust="spacingAndGlyphs"
-                fill="none"
-                stroke="rgba(255,255,255,0.95)"
-                strokeWidth="2.5"
-                style={{ fontFamily: "inherit" }}
-              >
-                STUDIO CAVE
-              </text>
+            {/* one clipped outline copy per letter */}
+            {BRAND_TEXT.split("").map((ch, i) =>
+              ch === " " ? null : (
+                <g key={i} clipPath={`url(#letter-clip-${i})`}>
+                  <text
+                    x={BRAND.x}
+                    y={BRAND.y}
+                    textAnchor="middle"
+                    fontSize={BRAND.fontSize}
+                    fontWeight={800}
+                    textLength={BRAND.textLength}
+                    lengthAdjust="spacingAndGlyphs"
+                    fill="none"
+                    stroke="rgba(255,255,255,0.95)"
+                    strokeWidth="2.5"
+                    style={{ fontFamily: "inherit" }}
+                  >
+                    {BRAND_TEXT}
+                  </text>
+                </g>
+              )
+            )}
 
+            <g clipPath="url(#sub-clip)">
               <text
                 x={BRAND.x}
                 y={SUB.y}
@@ -539,6 +699,44 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
         </div>
 
         {/* THICK FINAL BANK — rises later and covers everything */}
+                {/* TWO MORE BOTTOM CLOUDS — same position as the front bank, different shapes */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[28] h-[50vh] will-change-transform"
+          style={{ transform: `translateY(${bankLowY}%)` }}
+        >
+          <div className="cloud-drift absolute -left-[4%] -right-[4%] inset-y-0">
+            <Clouds
+              id="bankextra1"
+              seed={17}
+              freq="0.0036 0.0072"
+              gain={3.6}
+              offset={-1.5}
+              blur={6}
+              fadeTop
+              softSides
+            />
+          </div>
+        </div>
+
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[28] h-[50vh] will-change-transform"
+          style={{ transform: `translateY(${bankLowY}%)` }}
+        >
+          <div className="cloud-drift-b absolute -left-[4%] -right-[4%] inset-y-0">
+            <Clouds
+              id="bankextra2"
+              seed={23}
+              freq="0.0028 0.0058"
+              gain={3.6}
+              offset={-1.45}
+              blur={6}
+              fadeTop
+              softSides
+            />
+          </div>
+        </div>
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-[115vh] will-change-transform"
@@ -562,11 +760,8 @@ const buildingY = -zoom * BUILDING_SETTINGS.scrollY;
           className="pointer-events-none absolute inset-x-0 bottom-6 z-30 flex items-center justify-between px-6 text-xs text-[#171815] md:bottom-8 md:px-12 lg:px-20"
           style={{ opacity: 1 - range(p, 0, 0.12) }}
         >
-          <span className="uppercase tracking-[0.2em]">Designed for living</span>
-          <span className="flex items-center gap-2">
-            Scroll to explore
-            <ArrowDown size={15} />
-          </span>
+         
+     
         </div>
 
         {/* FINAL FADE TO WHITE (matches the next section) */}
