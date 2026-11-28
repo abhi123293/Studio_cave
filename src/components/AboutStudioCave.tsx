@@ -8,18 +8,17 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
 /**
- * Editorial About Us section reproducing the exact reference proportions:
- * Hero sky-mist backdrop framing a wide top-left architectural image, a
- * flush-bottom lower-left image, and a tall right vertical anchor (`~40.5%` /
- * `~40.5%` / `~54%` initially, zoomed `1.08`).
+ * Mobile-smooth editorial About Us section using native CSS `sticky top-0`
+ * (eliminating async touch-scroll JS vertical jitter) and GPU-composited
+ * `clip-path` + `transform` transitions (zero layout reflow during scroll).
  *
- * Scrolling smoothly contracts all three image widths and scales (`1.08 -> 1.0`)
- * and slides the central About copy horizontally right -> left into the open
- * corridor with deep charcoal primary text and muted grey secondary text.
+ * Overlapping Hero's final `100svh` cloud exit keeps zero blank gaps while
+ * transitioning smoothly from the initial zoomed 3-image proportion to the
+ * opened `#171815` / `#9da19e` central typography.
  */
 export default function AboutStudioCave() {
   const stageRef = useRef<HTMLDivElement>(null);
-  const pinnedCanvasRef = useRef<HTMLDivElement>(null);
+  const stickyCanvasRef = useRef<HTMLDivElement>(null);
 
   const img1FrameRef = useRef<HTMLDivElement>(null);
   const img1ZoomRef = useRef<HTMLDivElement>(null);
@@ -33,7 +32,7 @@ export default function AboutStudioCave() {
 
   useEffect(() => {
     const stage = stageRef.current;
-    const canvas = pinnedCanvasRef.current;
+    const canvas = stickyCanvasRef.current;
     const f1 = img1FrameRef.current;
     const z1 = img1ZoomRef.current;
     const f2 = img2FrameRef.current;
@@ -43,7 +42,18 @@ export default function AboutStudioCave() {
     const clip = clipRef.current;
     const track = textTrackRef.current;
 
-    if (!stage || !canvas || !f1 || !z1 || !f2 || !z2 || !f3 || !z3 || !clip || !track) {
+    if (
+      !stage ||
+      !canvas ||
+      !f1 ||
+      !z1 ||
+      !f2 ||
+      !z2 ||
+      !f3 ||
+      !z3 ||
+      !clip ||
+      !track
+    ) {
       return;
     }
 
@@ -55,121 +65,16 @@ export default function AboutStudioCave() {
     let lastTime = 0;
     let currentP = 0;
     let targetP = 0;
-
-    const getLayouts = (vw: number, vh: number) => {
-      if (vw >= 1024) {
-        const edge = 16;
-        const leftStartW = vw * 0.405;
-        const leftEndW = Math.min(330, vw * 0.225);
-        const top3 = clamp(0.085 * vh, 72, 86);
-        const endBottom = clamp(0.04 * vh, 24, 42);
-
-        return {
-          start: {
-            img1: { left: edge, top: 0.19 * vh, width: leftStartW, height: 0.265 * vh },
-            img2: { left: edge, bottom: 0, width: leftStartW, height: 0.315 * vh },
-            img3: { right: edge, top: top3, width: vw * 0.54, height: vh - top3 },
-          },
-          end: {
-            img1: { left: edge, top: 0.18 * vh, width: leftEndW, height: 0.225 * vh },
-            img2: { left: edge, bottom: endBottom, width: leftEndW, height: 0.22 * vh },
-            img3: {
-              right: edge,
-              top: top3,
-              width: vw * 0.385,
-              height: vh - top3 - endBottom,
-            },
-          },
-        };
-      }
-
-      if (vw >= 768) {
-        const edge = 16;
-        const leftStartW = vw * 0.405;
-        const leftEndW = vw * 0.225;
-        const top3 = 74;
-        const endBottom = 28;
-
-        return {
-          start: {
-            img1: { left: edge, top: 0.19 * vh, width: leftStartW, height: 0.26 * vh },
-            img2: { left: edge, bottom: 0, width: leftStartW, height: 0.31 * vh },
-            img3: { right: edge, top: top3, width: vw * 0.535, height: vh - top3 },
-          },
-          end: {
-            img1: { left: edge, top: 0.175 * vh, width: leftEndW, height: 0.22 * vh },
-            img2: { left: edge, bottom: endBottom, width: leftEndW, height: 0.215 * vh },
-            img3: {
-              right: edge,
-              top: top3,
-              width: vw * 0.385,
-              height: vh - top3 - endBottom,
-            },
-          },
-        };
-      }
-
-      const edge = 12;
-      const top3 = 68;
-      const endBottom = 16;
-      const mobileThumbH = clamp(0.125 * vh, 74, 102);
-
-      return {
-        start: {
-          img1: {
-            left: edge,
-            top: clamp(0.11 * vh, 72, 96),
-            width: vw * 0.44,
-            height: 0.21 * vh,
-          },
-          img2: {
-            left: edge,
-            bottom: 0,
-            width: vw * 0.44,
-            height: 0.22 * vh,
-          },
-          img3: {
-            right: edge,
-            top: top3,
-            width: vw * 0.49,
-            height: vh - top3,
-          },
-        },
-        end: {
-          img1: {
-            left: edge,
-            top: top3,
-            width: vw * 0.36,
-            height: mobileThumbH,
-          },
-          img2: {
-            left: edge,
-            bottom: endBottom,
-            width: vw * 0.36,
-            height: mobileThumbH,
-          },
-          img3: {
-            right: edge,
-            top: top3,
-            width: vw * 0.3,
-            height: vh - top3 - endBottom,
-          },
-        },
-      };
-    };
-
     let lastAppliedP = -1;
 
-    const syncCanvasLock = () => {
+    const getScrollProgress = () => {
       const rect = stage.getBoundingClientRect();
-      // Prefer canvas.offsetHeight (fixed CSS 100svh) so mobile address-bar toggles never jitter progress
+      // Fixed CSS 100svh canvas height avoids mobile browser address-bar jumps
       const viewH = canvas.offsetHeight || window.innerHeight;
       const scrollableDistance = Math.max(0, rect.height - viewH);
-      const lockY = clamp(-rect.top, -viewH, scrollableDistance + viewH);
-      canvas.style.transform = `translate3d(0, ${lockY.toFixed(2)}px, 0)`;
 
-      // Cross-dissolve seamlessly out of Hero's finishing clouds with zero white gap
-      const entryFade = clamp(1 - rect.top / (viewH * 0.24));
+      // Gentle fade-in over Hero's finishing white clouds without vertical jitter
+      const entryFade = clamp(1 - rect.top / (viewH * 0.2));
       canvas.style.opacity = entryFade.toFixed(3);
       canvas.style.pointerEvents = entryFade > 0.05 ? "auto" : "none";
 
@@ -178,7 +83,8 @@ export default function AboutStudioCave() {
         return;
       }
 
-      targetP = scrollableDistance > 0 ? clamp(-rect.top / scrollableDistance) : 0;
+      targetP =
+        scrollableDistance > 0 ? clamp(-rect.top / scrollableDistance) : 0;
     };
 
     const applyScene = (stageP: number, force = false) => {
@@ -190,32 +96,60 @@ export default function AboutStudioCave() {
       const vw = canvas.clientWidth || window.innerWidth;
       const vh = canvas.offsetHeight || window.innerHeight;
       const t = reducedMotion ? 1 : easeOutCubic(clamp(stageP / 0.78));
-      const { start, end } = getLayouts(vw, vh);
-
       const zoomScale = lerp(1.08, 1, t).toFixed(4);
 
-      // IMAGE 1 — Top-left: contracts horizontally from reference proportion
-      f1.style.left = `${lerp(start.img1.left, end.img1.left, t).toFixed(2)}px`;
-      f1.style.top = `${lerp(start.img1.top, end.img1.top, t).toFixed(2)}px`;
-      f1.style.width = `${lerp(start.img1.width, end.img1.width, t).toFixed(2)}px`;
-      f1.style.height = `${lerp(start.img1.height, end.img1.height, t).toFixed(2)}px`;
+      if (vw >= 1024) {
+        const leftEndW = Math.min(330, vw * 0.225);
+        const rightTrim1 = Math.max(0, vw * 0.405 - leftEndW) * t;
+        const bottomTrim1 = 0.045 * vh * t;
+
+        const topTrim2 = 0.095 * vh * t;
+        const liftY2 = -clamp(0.04 * vh, 24, 42) * t;
+
+        const leftTrim3 = vw * (0.54 - 0.385) * t;
+        const bottomTrim3 = clamp(0.04 * vh, 24, 42) * t;
+
+        f1.style.clipPath = `inset(0px ${rightTrim1.toFixed(1)}px ${bottomTrim1.toFixed(1)}px 0px)`;
+        f2.style.transform = `translate3d(0, ${liftY2.toFixed(1)}px, 0)`;
+        f2.style.clipPath = `inset(${topTrim2.toFixed(1)}px ${rightTrim1.toFixed(1)}px 0px 0px)`;
+        f3.style.clipPath = `inset(0px 0px ${bottomTrim3.toFixed(1)}px ${leftTrim3.toFixed(1)}px)`;
+      } else if (vw >= 768) {
+        const rightTrim1 = vw * (0.405 - 0.225) * t;
+        const bottomTrim1 = 0.045 * vh * t;
+
+        const topTrim2 = 0.095 * vh * t;
+        const liftY2 = -28 * t;
+
+        const leftTrim3 = vw * (0.535 - 0.385) * t;
+        const bottomTrim3 = 28 * t;
+
+        f1.style.clipPath = `inset(0px ${rightTrim1.toFixed(1)}px ${bottomTrim1.toFixed(1)}px 0px)`;
+        f2.style.transform = `translate3d(0, ${liftY2.toFixed(1)}px, 0)`;
+        f2.style.clipPath = `inset(${topTrim2.toFixed(1)}px ${rightTrim1.toFixed(1)}px 0px 0px)`;
+        f3.style.clipPath = `inset(0px 0px ${bottomTrim3.toFixed(1)}px ${leftTrim3.toFixed(1)}px)`;
+      } else {
+        const mobileStartH1 = 0.22 * vh;
+        const mobileStartH2 = 0.23 * vh;
+        const mobileEndH = clamp(0.125 * vh, 74, 100);
+
+        const rightTrim = vw * (0.44 - 0.36) * t;
+        const bottomTrim1 = Math.max(0, mobileStartH1 - mobileEndH) * t;
+        const topTrim2 = Math.max(0, mobileStartH2 - mobileEndH) * t;
+        const liftY2 = -16 * t;
+
+        const leftTrim3 = vw * (0.49 - 0.3) * t;
+        const bottomTrim3 = 16 * t;
+
+        f1.style.clipPath = `inset(0px ${rightTrim.toFixed(1)}px ${bottomTrim1.toFixed(1)}px 0px)`;
+        f2.style.transform = `translate3d(0, ${liftY2.toFixed(1)}px, 0)`;
+        f2.style.clipPath = `inset(${topTrim2.toFixed(1)}px ${rightTrim.toFixed(1)}px 0px 0px)`;
+        f3.style.clipPath = `inset(0px 0px ${bottomTrim3.toFixed(1)}px ${leftTrim3.toFixed(1)}px)`;
+      }
+
       z1.style.transform = `scale(${zoomScale})`;
-
-      // IMAGE 2 — Bottom-left: flush bottom start, contracts in width & lifts softly
-      f2.style.left = `${lerp(start.img2.left, end.img2.left, t).toFixed(2)}px`;
-      f2.style.bottom = `${lerp(start.img2.bottom, end.img2.bottom, t).toFixed(2)}px`;
-      f2.style.width = `${lerp(start.img2.width, end.img2.width, t).toFixed(2)}px`;
-      f2.style.height = `${lerp(start.img2.height, end.img2.height, t).toFixed(2)}px`;
       z2.style.transform = `scale(${zoomScale})`;
-
-      // IMAGE 3 — Tall right anchor: starts wide, contracts horizontally to editorial width
-      f3.style.right = `${lerp(start.img3.right, end.img3.right, t).toFixed(2)}px`;
-      f3.style.top = `${lerp(start.img3.top, end.img3.top, t).toFixed(2)}px`;
-      f3.style.width = `${lerp(start.img3.width, end.img3.width, t).toFixed(2)}px`;
-      f3.style.height = `${lerp(start.img3.height, end.img3.height, t).toFixed(2)}px`;
       z3.style.transform = `scale(${zoomScale})`;
 
-      // Reveal central text horizontally right -> left as the contracting widths open the corridor
       const textRevealT = reducedMotion ? 1 : easeOutCubic(clamp((t - 0.12) / 0.88));
       const maxOffsetX = clip.clientWidth + 24;
       const textX = lerp(maxOffsetX, 0, textRevealT);
@@ -223,17 +157,17 @@ export default function AboutStudioCave() {
     };
 
     const animate = (now: number) => {
-      syncCanvasLock();
+      getScrollProgress();
 
       const dt = lastTime ? Math.min((now - lastTime) / 1000, 0.05) : 1 / 60;
       lastTime = now;
 
       const diff = targetP - currentP;
-      const dampingSpeed = window.innerWidth < 768 ? 11 : 8;
+      const dampingSpeed = window.innerWidth < 768 ? 14 : 8.5;
       const factor = 1 - Math.exp(-dampingSpeed * dt);
       currentP += diff * factor;
 
-      if (Math.abs(diff) < 0.0004) {
+      if (Math.abs(diff) < 0.0005) {
         currentP = targetP;
         raf = 0;
         lastTime = 0;
@@ -245,7 +179,7 @@ export default function AboutStudioCave() {
     };
 
     const onScroll = () => {
-      syncCanvasLock();
+      getScrollProgress();
       if (!raf) {
         raf = requestAnimationFrame(animate);
       }
@@ -253,8 +187,7 @@ export default function AboutStudioCave() {
 
     let prevWidth = window.innerWidth;
     const onResize = () => {
-      syncCanvasLock();
-      // Ignore mobile scroll address-bar vertical resizes; force full relayout on orientation/width change
+      getScrollProgress();
       if (window.innerWidth !== prevWidth) {
         prevWidth = window.innerWidth;
         applyScene(currentP, true);
@@ -264,7 +197,7 @@ export default function AboutStudioCave() {
       }
     };
 
-    syncCanvasLock();
+    getScrollProgress();
     currentP = reducedMotion ? 1 : targetP;
     applyScene(currentP, true);
 
@@ -281,12 +214,12 @@ export default function AboutStudioCave() {
   return (
     <section
       aria-label="About Studio Cave"
-      className="relative z-40 -mt-[100svh] w-full bg-transparent text-[#171815]"
+      className="relative z-40 -mt-screen w-full bg-transparent text-[#171815]"
     >
-      {/* Scroll-driving container clipped strictly to the About section window */}
+      {/* overflow-x-clip keeps position: sticky hardware-locked on mobile & desktop */}
       <div
         ref={stageRef}
-        className="relative h-[175vh] w-full overflow-hidden bg-transparent sm:h-[195vh] md:h-[240vh]"
+        className="relative h-[175vh] w-full overflow-x-clip bg-transparent sm:h-[195vh] md:h-[240vh]"
       >
         {/* Navbar #about anchor targets the revealed editorial composition hold */}
         <div
@@ -295,17 +228,16 @@ export default function AboutStudioCave() {
           className="pointer-events-none absolute inset-x-0 top-[58vh] h-px sm:top-[74vh] md:top-[109vh]"
         />
 
-        {/* Viewport-locked canvas inside the About aperture styled with Hero's sky, warm stone & peach horizon */}
+        {/* Compositor-pinned 100svh stage — zero vertical JS scroll shake on mobile */}
         <div
-          ref={pinnedCanvasRef}
-          className="absolute inset-x-0 top-0 h-[100svh] min-h-[540px] w-full overflow-hidden bg-[#dbe4ee] will-change-[transform,opacity] md:min-h-[620px]"
+          ref={stickyCanvasRef}
+          className="sticky top-0 h-[100svh] w-full overflow-hidden bg-[#dbe4ee] will-change-[opacity] md:min-h-[620px]"
           style={{
-            contain: "layout style paint",
             background:
               "radial-gradient(ellipse 60% 50% at 6% 95%, rgba(255,176,130,0.65) 0%, rgba(255,200,165,0.34) 45%, transparent 80%), linear-gradient(180deg, #b6d0e6 0%, #dbe4ee 42%, #e9e8e3 78%, #f1ded0 100%)",
           }}
         >
-          {/* CENTRAL CLIPPED TEXT REVEAL AREA — sits in the opened Hero-toned corridor */}
+          {/* CENTRAL CLIPPED TEXT REVEAL AREA */}
           <div
             ref={clipRef}
             className="
@@ -338,10 +270,13 @@ export default function AboutStudioCave() {
             </div>
           </div>
 
-          {/* IMAGE 1 — TOP LEFT: starts ~40.5vw wide rectangular proportion, contracts on scroll */}
+          {/* IMAGE 1 — TOP LEFT: GPU clip-path crops inward without layout reflow */}
           <div
             ref={img1FrameRef}
-            className="absolute left-4 top-[19vh] z-30 h-[26.5vh] w-[40.5%] overflow-hidden bg-[#e9e8e3] will-change-[left,top,width,height]"
+            className="
+              absolute left-3 top-[68px] z-30 h-[22svh] w-[44vw] overflow-hidden bg-[#e9e8e3] will-change-[clip-path]
+              md:left-4 md:top-[18.5vh] md:h-[26.5vh] md:w-[40.5vw]
+            "
           >
             <div
               ref={img1ZoomRef}
@@ -353,16 +288,19 @@ export default function AboutStudioCave() {
                 alt="Modern architectural residence exterior with travertine walls and timber soffit"
                 fill
                 priority
-                sizes="(min-width: 1024px) 41vw, 42vw"
+                sizes="(min-width: 1024px) 41vw, 45vw"
                 className="object-cover"
               />
             </div>
           </div>
 
-          {/* IMAGE 2 — BOTTOM LEFT: flush bottom, ~40.5vw wide reference proportion */}
+          {/* IMAGE 2 — BOTTOM LEFT: GPU translate3d + clip-path without layout reflow */}
           <div
             ref={img2FrameRef}
-            className="absolute bottom-0 left-4 z-30 h-[31.5vh] w-[40.5%] overflow-hidden bg-[#e9e8e3] will-change-[left,bottom,width,height]"
+            className="
+              absolute bottom-0 left-3 z-30 h-[23svh] w-[44vw] overflow-hidden bg-[#e9e8e3] will-change-[transform,clip-path]
+              md:left-4 md:h-[31.5vh] md:w-[40.5vw]
+            "
           >
             <div
               ref={img2ZoomRef}
@@ -373,16 +311,19 @@ export default function AboutStudioCave() {
                 src="/images/services/interior-design.webp"
                 alt="Warm minimalist interior living space with oak paneling and natural stone"
                 fill
-                sizes="(min-width: 1024px) 41vw, 42vw"
+                sizes="(min-width: 1024px) 41vw, 45vw"
                 className="object-cover"
               />
             </div>
           </div>
 
-          {/* IMAGE 3 — RIGHT LARGE VERTICAL: starts ~54vw wide × 91.5vh tall, contracts horizontally on scroll */}
+          {/* IMAGE 3 — RIGHT LARGE VERTICAL: GPU clip-path narrows cleanly inward */}
           <div
             ref={img3FrameRef}
-            className="absolute right-4 top-[8.5vh] z-30 h-[91.5vh] w-[54%] overflow-hidden bg-[#e9e8e3] will-change-[right,top,width,height]"
+            className="
+              absolute bottom-0 right-3 top-[68px] z-30 w-[49vw] overflow-hidden bg-[#e9e8e3] will-change-[clip-path]
+              md:right-4 md:top-[74px] md:w-[53.5vw] lg:top-[8.5vh] lg:w-[54vw]
+            "
           >
             <div
               ref={img3ZoomRef}
@@ -394,7 +335,7 @@ export default function AboutStudioCave() {
                 alt="Monumental double-height contemporary architectural facade in honed travertine, timber, and charcoal steel"
                 fill
                 priority
-                sizes="(min-width: 1024px) 54vw, 54vw"
+                sizes="(min-width: 1024px) 54vw, 50vw"
                 className="object-cover object-center"
               />
             </div>
