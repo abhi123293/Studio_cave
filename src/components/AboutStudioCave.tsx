@@ -111,35 +111,65 @@ export default function AboutStudioCave() {
 
       const edge = 12;
       const top3 = 68;
-      const endBottom = 20;
+      const endBottom = 16;
+      const mobileThumbH = clamp(0.125 * vh, 74, 102);
+
       return {
         start: {
-          img1: { left: edge, top: 0.15 * vh, width: vw * 0.42, height: 0.19 * vh },
-          img2: { left: edge, bottom: 0, width: vw * 0.42, height: 0.22 * vh },
-          img3: { right: edge, top: top3, width: vw * 0.51, height: vh - top3 },
-        },
-        end: {
-          img1: { left: edge, top: 74, width: vw * 0.34, height: 96 },
-          img2: { left: edge, bottom: endBottom, width: vw * 0.34, height: 92 },
+          img1: {
+            left: edge,
+            top: clamp(0.11 * vh, 72, 96),
+            width: vw * 0.44,
+            height: 0.21 * vh,
+          },
+          img2: {
+            left: edge,
+            bottom: 0,
+            width: vw * 0.44,
+            height: 0.22 * vh,
+          },
           img3: {
             right: edge,
             top: top3,
-            width: vw * 0.34,
+            width: vw * 0.49,
+            height: vh - top3,
+          },
+        },
+        end: {
+          img1: {
+            left: edge,
+            top: top3,
+            width: vw * 0.36,
+            height: mobileThumbH,
+          },
+          img2: {
+            left: edge,
+            bottom: endBottom,
+            width: vw * 0.36,
+            height: mobileThumbH,
+          },
+          img3: {
+            right: edge,
+            top: top3,
+            width: vw * 0.3,
             height: vh - top3 - endBottom,
           },
         },
       };
     };
 
+    let lastAppliedP = -1;
+
     const syncCanvasLock = () => {
       const rect = stage.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const scrollableDistance = Math.max(0, rect.height - vh);
-      const lockY = clamp(-rect.top, -vh, scrollableDistance + vh);
+      // Prefer canvas.offsetHeight (fixed CSS 100svh) so mobile address-bar toggles never jitter progress
+      const viewH = canvas.offsetHeight || window.innerHeight;
+      const scrollableDistance = Math.max(0, rect.height - viewH);
+      const lockY = clamp(-rect.top, -viewH, scrollableDistance + viewH);
       canvas.style.transform = `translate3d(0, ${lockY.toFixed(2)}px, 0)`;
 
       // Cross-dissolve seamlessly out of Hero's finishing clouds with zero white gap
-      const entryFade = clamp(1 - rect.top / (vh * 0.24));
+      const entryFade = clamp(1 - rect.top / (viewH * 0.24));
       canvas.style.opacity = entryFade.toFixed(3);
       canvas.style.pointerEvents = entryFade > 0.05 ? "auto" : "none";
 
@@ -151,15 +181,20 @@ export default function AboutStudioCave() {
       targetP = scrollableDistance > 0 ? clamp(-rect.top / scrollableDistance) : 0;
     };
 
-    const applyScene = (stageP: number) => {
+    const applyScene = (stageP: number, force = false) => {
+      if (!force && Math.abs(stageP - lastAppliedP) < 0.0002) {
+        return;
+      }
+      lastAppliedP = stageP;
+
       const vw = canvas.clientWidth || window.innerWidth;
-      const vh = canvas.clientHeight || window.innerHeight;
+      const vh = canvas.offsetHeight || window.innerHeight;
       const t = reducedMotion ? 1 : easeOutCubic(clamp(stageP / 0.78));
       const { start, end } = getLayouts(vw, vh);
 
       const zoomScale = lerp(1.08, 1, t).toFixed(4);
 
-      // IMAGE 1 — Top-left: contracts horizontally from 40.5% reference proportion
+      // IMAGE 1 — Top-left: contracts horizontally from reference proportion
       f1.style.left = `${lerp(start.img1.left, end.img1.left, t).toFixed(2)}px`;
       f1.style.top = `${lerp(start.img1.top, end.img1.top, t).toFixed(2)}px`;
       f1.style.width = `${lerp(start.img1.width, end.img1.width, t).toFixed(2)}px`;
@@ -173,7 +208,7 @@ export default function AboutStudioCave() {
       f2.style.height = `${lerp(start.img2.height, end.img2.height, t).toFixed(2)}px`;
       z2.style.transform = `scale(${zoomScale})`;
 
-      // IMAGE 3 — Tall right anchor: starts at 54% width, contracts horizontally to 38.5%
+      // IMAGE 3 — Tall right anchor: starts wide, contracts horizontally to editorial width
       f3.style.right = `${lerp(start.img3.right, end.img3.right, t).toFixed(2)}px`;
       f3.style.top = `${lerp(start.img3.top, end.img3.top, t).toFixed(2)}px`;
       f3.style.width = `${lerp(start.img3.width, end.img3.width, t).toFixed(2)}px`;
@@ -194,7 +229,8 @@ export default function AboutStudioCave() {
       lastTime = now;
 
       const diff = targetP - currentP;
-      const factor = 1 - Math.exp(-8 * dt);
+      const dampingSpeed = window.innerWidth < 768 ? 11 : 8;
+      const factor = 1 - Math.exp(-dampingSpeed * dt);
       currentP += diff * factor;
 
       if (Math.abs(diff) < 0.0004) {
@@ -208,8 +244,21 @@ export default function AboutStudioCave() {
       applyScene(currentP);
     };
 
-    const onScrollOrResize = () => {
+    const onScroll = () => {
       syncCanvasLock();
+      if (!raf) {
+        raf = requestAnimationFrame(animate);
+      }
+    };
+
+    let prevWidth = window.innerWidth;
+    const onResize = () => {
+      syncCanvasLock();
+      // Ignore mobile scroll address-bar vertical resizes; force full relayout on orientation/width change
+      if (window.innerWidth !== prevWidth) {
+        prevWidth = window.innerWidth;
+        applyScene(currentP, true);
+      }
       if (!raf) {
         raf = requestAnimationFrame(animate);
       }
@@ -217,40 +266,41 @@ export default function AboutStudioCave() {
 
     syncCanvasLock();
     currentP = reducedMotion ? 1 : targetP;
-    applyScene(currentP);
+    applyScene(currentP, true);
 
-    window.addEventListener("scroll", onScrollOrResize, { passive: true });
-    window.addEventListener("resize", onScrollOrResize);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
 
     return () => {
       if (raf) cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", onScrollOrResize);
-      window.removeEventListener("resize", onScrollOrResize);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
     };
   }, []);
 
   return (
     <section
       aria-label="About Studio Cave"
-      className="relative z-40 -mt-[100vh] w-full bg-transparent text-[#171815]"
+      className="relative z-40 -mt-[100svh] w-full bg-transparent text-[#171815]"
     >
       {/* Scroll-driving container clipped strictly to the About section window */}
       <div
         ref={stageRef}
-        className="relative h-[225vh] w-full overflow-hidden bg-transparent md:h-[240vh]"
+        className="relative h-[175vh] w-full overflow-hidden bg-transparent sm:h-[195vh] md:h-[240vh]"
       >
         {/* Navbar #about anchor targets the revealed editorial composition hold */}
         <div
           id="about"
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-[98vh] h-px md:top-[109vh]"
+          className="pointer-events-none absolute inset-x-0 top-[58vh] h-px sm:top-[74vh] md:top-[109vh]"
         />
 
         {/* Viewport-locked canvas inside the About aperture styled with Hero's sky, warm stone & peach horizon */}
         <div
           ref={pinnedCanvasRef}
-          className="absolute inset-x-0 top-0 h-[100svh] min-h-[620px] w-full overflow-hidden bg-[#dbe4ee] will-change-[transform,opacity]"
+          className="absolute inset-x-0 top-0 h-[100svh] min-h-[540px] w-full overflow-hidden bg-[#dbe4ee] will-change-[transform,opacity] md:min-h-[620px]"
           style={{
+            contain: "layout style paint",
             background:
               "radial-gradient(ellipse 60% 50% at 6% 95%, rgba(255,176,130,0.65) 0%, rgba(255,200,165,0.34) 45%, transparent 80%), linear-gradient(180deg, #b6d0e6 0%, #dbe4ee 42%, #e9e8e3 78%, #f1ded0 100%)",
           }}
@@ -259,9 +309,9 @@ export default function AboutStudioCave() {
           <div
             ref={clipRef}
             className="
-              absolute bottom-[122px] left-3 right-[37%] top-[180px] z-20
-              flex items-center justify-center overflow-hidden px-1 text-center
-              sm:bottom-[148px] sm:left-4 sm:right-[36%] sm:top-[214px] sm:px-3
+              absolute bottom-[112px] left-3 right-[33%] top-[168px] z-20
+              flex items-center justify-center overflow-hidden px-1.5 text-center
+              sm:bottom-[130px] sm:left-4 sm:right-[34%] sm:top-[184px] sm:px-3
               md:inset-y-0 md:left-[25.5%] md:right-[41%] md:px-4
               lg:left-[25%] lg:right-[40.5%] lg:px-6
             "
@@ -271,11 +321,11 @@ export default function AboutStudioCave() {
               className="w-full max-w-[460px] will-change-transform motion-reduce:transform-none"
               style={{ transform: "translate3d(460px, 0, 0)" }}
             >
-              <h2 className="mb-4 text-2xl font-bold uppercase leading-[1.02] tracking-[-0.03em] text-[#171815] sm:mb-5 sm:text-3xl md:text-4xl lg:text-[2.6rem] xl:text-[2.9rem]">
+              <h2 className="mb-2.5 text-xl font-bold uppercase leading-[1.02] tracking-[-0.03em] text-[#171815] sm:mb-4 sm:text-3xl md:text-4xl lg:text-[2.6rem] xl:text-[2.9rem]">
                 ABOUT US
               </h2>
 
-              <p className="mx-auto text-[0.95rem] font-semibold leading-[1.42] tracking-[-0.025em] sm:text-lg md:text-[1.22rem] lg:text-[1.42rem] xl:text-[1.58rem]">
+              <p className="mx-auto text-[13px] font-semibold leading-[1.42] tracking-[-0.02em] sm:text-lg md:text-[1.22rem] lg:text-[1.42rem] xl:text-[1.58rem]">
                 <span className="text-[#171815]">
                   Studio Cave is an architecture, interior design, construction,
                   and turnkey-solutions practice{" "}
