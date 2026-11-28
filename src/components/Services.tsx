@@ -13,14 +13,13 @@ const SERVICE_ICONS = {
 } as const;
 
 /**
- * Interactive expanding flex-pill Services gallery matching the horizontal
- * strip accordion pattern while using Hero's sky-mist palette and Studio
- * Cave's architectural photography.
+ * Luxury sharp-rectangular expanding gallery showcase styled in Hero's
+ * sky-mist, warm limestone, apricot horizon, and deep charcoal palette.
  *
- * One panel stays expanded wide while the remaining 3 collapse into sleek
- * vertical photo strips. Clicking any collapsed strip switches the active
- * panel smoothly; clicking "Explore More" reveals its sub-services inline
- * with live image preview on hover.
+ * One active architectural discipline expands horizontally across crisp
+ * square edges with 4K photography, frosted obsidian icon framing, muted
+ * champagne-gold hairlines, and an inline Explore More / Show Less drawer,
+ * while inactive panels rest as vertical labeled gallery slices.
  */
 export default function Services() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -66,13 +65,13 @@ export default function Services() {
           </div>
 
           <p className="max-w-sm text-sm leading-[1.7] text-[#2c3940] md:text-right">
-            Select a discipline to expand its full scope—bridging architecture,
-            interiors, construction, and turnkey execution.
+            Select a discipline to explore its full architectural scope across
+            design, interiors, structural build, and turnkey delivery.
           </p>
         </div>
 
-        {/* Horizontal expanding gallery on md+, vertical expanding pills on mobile */}
-        <div className="flex w-full flex-col gap-3.5 md:min-h-[580px] md:flex-row md:items-stretch md:gap-4 lg:min-h-[640px]">
+        {/* Sharp rectangular expanding gallery on md+, vertical strips on mobile */}
+        <div className="flex w-full flex-col gap-3 md:min-h-[600px] md:flex-row md:items-stretch md:gap-3.5 lg:min-h-[660px]">
           {SERVICE_CATEGORIES.map((service, idx) => {
             const isActive = activeIndex === idx;
             const isSubOpen = isActive && expandedSubSlug === service.slug;
@@ -97,42 +96,43 @@ export default function Services() {
                 onMouseLeave={() => {
                   if (isSubOpen) setPreviewSubIdx(null);
                 }}
-                className={`group relative overflow-hidden rounded-[26px] border border-[#171815]/12 bg-[#b6d0e6] transition-[flex,width,height,box-shadow] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] md:rounded-[34px] ${
-                    isActive
-                      ? "min-h-[430px] flex-1 shadow-[0_28px_64px_-24px_rgba(23,24,21,0.3)] md:min-h-[580px] md:min-w-0 md:flex-[1_1_auto] lg:min-h-[640px]"
-                      : "h-[82px] w-full cursor-pointer shadow-[0_12px_32px_-20px_rgba(23,24,21,0.22)] hover:shadow-[0_18px_40px_-18px_rgba(23,24,21,0.28)] md:h-auto md:min-h-[580px] md:w-[74px] md:flex-[0_0_74px] lg:min-h-[640px] lg:w-[92px] lg:flex-[0_0_92px]"
-                }`}
+                className={`group relative overflow-hidden rounded-none border transition-[flex,width,height,border-color,box-shadow] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${isActive
+                  ? "min-h-[450px] flex-1 border-[#171815]/22 bg-[#b6d0e6] shadow-[0_32px_72px_-28px_rgba(23,24,21,0.34)] md:min-h-[600px] md:min-w-0 md:flex-[1_1_auto] lg:min-h-[660px]"
+                  : "h-[84px] w-full cursor-pointer border-[#171815]/16 bg-[#b6d0e6] shadow-[0_14px_34px_-22px_rgba(23,24,21,0.22)] hover:border-[#947b52]/65 hover:shadow-[0_22px_48px_-20px_rgba(23,24,21,0.3)] md:h-auto md:min-h-[600px] md:w-[78px] md:flex-[0_0_78px] lg:min-h-[660px] lg:w-[96px] lg:flex-[0_0_96px]"
+                  }`}
               >
-                {/* Full-bleed architectural photograph inside pill container */}
+                {/* Full-bleed 4K architectural photograph inside sharp rectangular frame */}
                 <Image
                   src={displayImage}
                   alt={displayAlt}
                   fill
-                  sizes={
-                    isActive
-                      ? "(min-width: 1024px) 72vw, 96vw"
-                      : "(min-width: 1024px) 10vw, 96vw"
-                  }
-                  className={`object-cover transition-transform duration-700 ease-out ${
-                    isActive
-                      ? "scale-100"
-                      : "scale-[1.06] brightness-95 group-hover:scale-[1.1] group-hover:brightness-100"
-                  }`}
+                  priority={isActive}
+                  unoptimized
+                  sizes="100vw"
+                  className={`object-cover transition-all duration-700 ease-out ${isActive
+                    ? "scale-100 saturate-[0.96]"
+                    : "scale-[1.04] saturate-[0.82] brightness-[0.92] group-hover:scale-[1.08] group-hover:saturate-100 group-hover:brightness-100"
+                    }`}
                 />
 
-                {/* Smooth dark scrim for legibility of bottom icon, title & description */}
+                {/* Whisper-thin inner perimeter architectural highlight */}
                 <div
                   aria-hidden="true"
-                  className={`pointer-events-none absolute inset-0 transition-opacity duration-500 ${
-                    isActive
-                      ? isSubOpen
-                        ? "bg-gradient-to-t from-[#171815]/92 via-[#171815]/68 to-[#171815]/12"
-                        : "bg-gradient-to-t from-[#171815]/84 via-[#171815]/30 to-transparent"
-                      : "bg-gradient-to-t from-[#171815]/70 via-[#171815]/15 to-transparent"
-                  }`}
+                  className="pointer-events-none absolute inset-0 z-[5] border border-white/15"
                 />
 
-                {/* COLLAPSED STRIP TRIGGER OVERLAY (only interactive when collapsed) */}
+                {/* Smooth editorial vignette preserving bright top 4K clarity */}
+                <div
+                  aria-hidden="true"
+                  className={`pointer-events-none absolute inset-0 transition-opacity duration-500 ${isActive
+                    ? isSubOpen
+                      ? "bg-gradient-to-t from-[#171815]/92 via-[#171815]/68 to-[#171815]/18"
+                      : "bg-[linear-gradient(180deg,rgba(23,24,21,0.28)_0%,rgba(23,24,21,0.02)_26%,rgba(23,24,21,0.18)_58%,rgba(23,24,21,0.86)_100%)]"
+                    : "bg-gradient-to-t from-[#171815]/82 via-[#171815]/28 to-[#171815]/14"
+                    }`}
+                />
+
+                {/* COLLAPSED GALLERY SLICE OVERLAY (vertical discipline title + frosted square emblem) */}
                 {!isActive && (
                   <button
                     type="button"
@@ -141,34 +141,57 @@ export default function Services() {
                       selectCard(idx, service.slug);
                     }}
                     aria-label={`Select ${service.title}`}
-                    className="relative z-10 flex h-full w-full cursor-pointer items-center gap-3.5 px-5 md:flex-col md:justify-end md:px-0 md:pb-6"
+                    className="relative z-10 flex h-full w-full cursor-pointer items-center justify-between px-5 md:flex-col md:justify-end md:gap-5 md:px-0 md:pb-7"
                   >
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f5f3ee] text-[#171815] shadow-md transition-transform duration-300 group-hover:scale-105">
-                      <IconComponent size={18} strokeWidth={1.75} />
+                    <span className="hidden items-center gap-3 md:flex md:flex-col">
+                      <span className="[writing-mode:vertical-rl] rotate-180 text-xs font-semibold uppercase tracking-[0.24em] text-[#f5f3ee]/88 transition-colors duration-300 group-hover:text-[#e2c99b] lg:text-[13px]">
+                        {service.title}
+                      </span>
+                      <span
+                        aria-hidden="true"
+                        className="h-5 w-px bg-[#e2c99b]/60 transition-all duration-300 group-hover:h-8 group-hover:bg-[#e2c99b]"
+                      />
                     </span>
-                    <span className="text-sm font-semibold uppercase tracking-[0.06em] text-[#f5f3ee] md:hidden">
-                      {service.title}
-                    </span>
+
+                    <div className="flex items-center gap-3.5 md:justify-center">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-none border border-[#f5f3ee]/35 bg-[#171815]/48 text-[#e2c99b] backdrop-blur-md transition-all duration-300 group-hover:border-[#e2c99b] group-hover:bg-[#171815]/75 group-hover:text-[#f5f3ee]">
+                        <IconComponent size={18} strokeWidth={1.65} />
+                      </span>
+                      <span className="text-base font-semibold uppercase tracking-[0.08em] text-[#f5f3ee] md:hidden">
+                        {service.title}
+                      </span>
+                    </div>
                   </button>
                 )}
 
-                {/* ACTIVE EXPANDED CARD CONTENT */}
+                {/* ACTIVE EXPANDED MONOGRAPH CONTENT */}
                 {isActive && (
-                  <div className="relative z-10 flex h-full w-full flex-col justify-end p-5 sm:p-7 lg:p-9">
-                    <div className="w-full">
-                      {/* Header bar: Circular Hero badge + Title/Description + Explore More/Show Less */}
-                      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                        <div className="flex items-start gap-4">
-                          <span className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f5f3ee] text-[#171815] shadow-md sm:h-12 sm:w-12">
-                            <IconComponent size={20} strokeWidth={1.75} />
+                  <div className="relative z-10 flex h-full w-full flex-col justify-between p-5 sm:p-7 lg:p-10">
+                    {/* Subtle top-left discipline category hairline */}
+                    <div className="flex items-center gap-3">
+                      <span
+                        aria-hidden="true"
+                        className="h-px w-8 bg-[#e2c99b]/85"
+                      />
+                      <span className="text-[10.5px] font-semibold uppercase tracking-[0.26em] text-[#f5f3ee]/88">
+                        {service.introLabel}
+                      </span>
+                    </div>
+
+                    <div className="w-full pt-8">
+                      {/* Header bar: Frosted Obsidian Emblem + Title/Description + Explore More/Show Less */}
+                      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                        <div className="flex items-start gap-4 sm:gap-5">
+                          <span className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-none border border-[#e2c99b]/45 bg-[#171815]/58 text-[#e2c99b] backdrop-blur-md sm:h-12 sm:w-12">
+                            <IconComponent size={20} strokeWidth={1.65} />
                           </span>
 
                           <div className="min-w-0 max-w-2xl">
-                            <h3 className="text-xl font-semibold uppercase tracking-[-0.02em] text-[#f5f3ee] sm:text-2xl lg:text-[1.75rem]">
+                            <h3 className="text-3xl font-semibold uppercase leading-[1.02] tracking-[-0.03em] text-[#f5f3ee] sm:text-4xl lg:text-[2.75rem] xl:text-[3.15rem]">
                               {service.title}
                             </h3>
                             <p
-                              className={`mt-1.5 text-sm leading-[1.6] text-[#f5f3ee]/85 sm:text-[15px] ${
+                              className={`mt-2.5 text-sm leading-[1.64] text-[#f5f3ee]/86 sm:text-[15px] ${
                                 isSubOpen ? "" : "line-clamp-2"
                               }`}
                             >
@@ -185,9 +208,20 @@ export default function Services() {
                           }}
                           aria-expanded={isSubOpen}
                           aria-controls={`subservices-${service.slug}`}
-                          className="shrink-0 cursor-pointer self-start border border-[#f5f3ee]/45 bg-[#f5f3ee]/14 px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#f5f3ee] backdrop-blur-md transition-all duration-300 hover:border-[#f5f3ee] hover:bg-[#f5f3ee] hover:text-[#171815] lg:self-end"
+                          className={`group/btn relative shrink-0 cursor-pointer self-start overflow-hidden rounded-none border px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.22em] backdrop-blur-md transition-colors duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:self-end ${isSubOpen
+                            ? "border-[#e2c99b] bg-[#f5f3ee] text-[#171815] hover:bg-[#e2c99b]"
+                            : "border-[#f5f3ee]/45 bg-[#171815]/32 text-[#f5f3ee] hover:border-[#f5f3ee] hover:text-[#171815]"
+                            }`}
                         >
-                          {isSubOpen ? "Show Less" : "Explore More"}
+                          {!isSubOpen && (
+                            <span
+                              aria-hidden="true"
+                              className="absolute inset-0 z-0 origin-bottom scale-y-0 bg-[#f5f3ee] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/btn:scale-y-100"
+                            />
+                          )}
+                          <span className="relative z-10">
+                            {isSubOpen ? "Show Less" : "Explore More"}
+                          </span>
                         </button>
                       </div>
 
@@ -204,7 +238,11 @@ export default function Services() {
                         }}
                         className="overflow-hidden"
                       >
-                        <div className="mt-5 border-t border-[#f5f3ee]/18 pt-5">
+                        <div className="mt-6 border-t border-[#f5f3ee]/18 pt-5">
+                          <p className="mb-3.5 text-[10px] font-semibold uppercase tracking-[0.24em] text-[#e2c99b]">
+                            Included Disciplines
+                          </p>
+
                           <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
                             {service.subServices.map((sub, subIdx) => {
                               const isHovered =
@@ -216,25 +254,24 @@ export default function Services() {
                                     type="button"
                                     onMouseEnter={() => setPreviewSubIdx(subIdx)}
                                     onFocus={() => setPreviewSubIdx(subIdx)}
-                                    className={`flex h-full w-full cursor-pointer items-start gap-2.5 rounded-2xl border p-3.5 text-left transition-all duration-300 ${
-                                      isHovered
-                                        ? "border-[#e2c99b]/70 bg-[#171815]/75 text-[#f5f3ee]"
-                                        : "border-[#f5f3ee]/16 bg-[#171815]/48 text-[#f5f3ee]/90 backdrop-blur-sm hover:border-[#e2c99b]/50 hover:bg-[#171815]/68"
-                                    }`}
+                                    className={`flex h-full w-full cursor-pointer items-start gap-3 rounded-none border p-3.5 text-left transition-all duration-300 ${isHovered
+                                      ? "border-[#e2c99b]/75 bg-[#171815]/84 text-[#f5f3ee]"
+                                      : "border-[#f5f3ee]/16 bg-[#171815]/58 text-[#f5f3ee]/92 backdrop-blur-md hover:border-[#e2c99b]/55 hover:bg-[#171815]/76"
+                                      }`}
                                   >
                                     <span
                                       aria-hidden="true"
-                                      className={`mt-1.5 h-1.5 w-1.5 shrink-0 rotate-45 ${
+                                      className={`mt-2 h-1.5 w-1.5 shrink-0 rotate-45 transition-colors duration-300 ${
                                         isHovered
                                           ? "bg-[#e2c99b]"
                                           : "bg-[#e2c99b]/65"
                                       }`}
                                     />
                                     <span className="min-w-0 flex-1">
-                                      <span className="block text-[11.5px] font-semibold tracking-[0.04em] text-[#f5f3ee] leading-[1.35]">
+                                      <span className="block text-sm font-semibold tracking-[0.02em] text-[#f5f3ee] leading-[1.3] sm:text-[15px] lg:text-base">
                                         {sub.title}
                                       </span>
-                                      <span className="mt-1 block text-[11.5px] font-normal leading-[1.48] text-[#f5f3ee]/78">
+                                      <span className="mt-1.5 block text-[11.5px] font-normal leading-[1.52] text-[#f5f3ee]/78">
                                         {sub.description}
                                       </span>
                                     </span>
