@@ -19,6 +19,11 @@
   }
 }
 
+html,
+body {
+  overscroll-behavior-x: none;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -29,6 +34,7 @@ body {
   from {
     transform: translate3d(-2.5%, 0, 0);
   }
+
   to {
     transform: translate3d(2.5%, 0, 0);
   }
@@ -39,6 +45,7 @@ body {
     transform: translateY(110%);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -50,6 +57,7 @@ body {
     transform: translateY(20px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -71,6 +79,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .cloud-drift,
   .hero-title-reveal,
   .hero-support-reveal {
