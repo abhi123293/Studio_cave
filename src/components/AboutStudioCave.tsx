@@ -96,7 +96,7 @@ export default function AboutStudioCave() {
       const vw = canvas.clientWidth || window.innerWidth;
       const vh = canvas.offsetHeight || window.innerHeight;
       const t = reducedMotion ? 1 : easeOutCubic(clamp(stageP / 0.78));
-      const zoomScale = lerp(1.08, 1, t).toFixed(4);
+      const zoomScale = lerp(1.02, 1, t).toFixed(4);
 
       if (vw >= 1024) {
         const leftEndW = Math.min(330, vw * 0.225);
@@ -281,14 +281,15 @@ export default function AboutStudioCave() {
             <div
               ref={img1ZoomRef}
               className="relative h-full w-full will-change-transform motion-reduce:transform-none"
-              style={{ transform: "scale(1.08)" }}
+              style={{ transform: "scale(1.02)" }}
             >
               <Image
                 src="/images/services/architecture.webp"
                 alt="Modern architectural residence exterior with travertine walls and timber soffit"
                 fill
                 priority
-                sizes="(min-width: 1024px) 41vw, 45vw"
+                unoptimized
+                sizes="100vw"
                 className="object-cover"
               />
             </div>
@@ -305,14 +306,16 @@ export default function AboutStudioCave() {
             <div
               ref={img2ZoomRef}
               className="relative h-full w-full will-change-transform motion-reduce:transform-none"
-              style={{ transform: "scale(1.08)" }}
+              style={{ transform: "scale(1.02)" }}
             >
               <Image
-                src="/images/services/interior-design.webp"
-                alt="Warm minimalist interior living space with oak paneling and natural stone"
+                src="/images/about/about-image2-4k.webp"
+                alt="Modern dark-matte kitchen featuring backlit ribbed glass cabinets, terrazzo backsplash, black pendant lights, open shelving, and warm LED plinth glow"
                 fill
-                sizes="(min-width: 1024px) 41vw, 45vw"
-                className="object-cover"
+                priority
+                unoptimized
+                sizes="100vw"
+                className="object-cover object-[50%_42%]"
               />
             </div>
           </div>
@@ -328,14 +331,15 @@ export default function AboutStudioCave() {
             <div
               ref={img3ZoomRef}
               className="relative h-full w-full will-change-transform motion-reduce:transform-none"
-              style={{ transform: "scale(1.08)" }}
+              style={{ transform: "scale(1.02)" }}
             >
               <Image
-                src="/images/about-vertical.webp"
-                alt="Monumental double-height contemporary architectural facade in honed travertine, timber, and charcoal steel"
+                src="/images/about/about-image3-4k.webp"
+                alt="Three-story contemporary residence featuring linear LED facade framing, dark fluted louvers, recessed balconies, double charcoal entry doors, topiary planters, and illuminated stone walkway"
                 fill
                 priority
-                sizes="(min-width: 1024px) 54vw, 50vw"
+                unoptimized
+                sizes="100vw"
                 className="object-cover object-center"
               />
             </div>

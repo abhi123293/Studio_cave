@@ -42,13 +42,9 @@ export default function Services() {
   return (
     <section
       id="services"
-      className="relative z-40 w-full text-[#171815]"
-      style={{
-        background:
-          "radial-gradient(ellipse 58% 46% at 8% 82%, rgba(255,176,130,0.38) 0%, rgba(255,200,165,0.18) 45%, transparent 75%), linear-gradient(180deg, #e9e8e3 0%, #dbe4ee 42%, #b6d0e6 78%, #dbe4ee 100%)",
-      }}
+      className="relative z-40 w-full bg-transparent text-[#171815]"
     >
-      <div className="w-full px-4 py-20 sm:px-8 md:px-12 md:py-24 lg:px-16 lg:pb-36 lg:pt-28">
+      <div className="w-full px-4 pb-14 pt-20 sm:px-8 md:px-12 md:pb-20 md:pt-24 lg:px-16 lg:pb-24 lg:pt-28">
         {/* Editorial monograph section header */}
         <div className="mb-10 flex flex-col justify-between gap-6 border-b border-[#171815]/14 pb-8 md:mb-12 md:flex-row md:items-end">
           <div className="max-w-2xl">
@@ -253,14 +249,14 @@ export default function Services() {
                                     type="button"
                                     onMouseEnter={() => setPreviewSubIdx(subIdx)}
                                     onFocus={() => setPreviewSubIdx(subIdx)}
-                                    className={`flex h-full w-full cursor-pointer items-start gap-3 rounded-none border p-3.5 text-left transition-all duration-300 ${isHovered
+                                    className={`flex h-full w-full cursor-pointer items-center gap-3 rounded-none border p-3.5 text-left transition-all duration-300 ${isHovered
                                       ? "border-[#e2c99b]/75 bg-[#171815]/84 text-[#f5f3ee]"
                                       : "border-[#f5f3ee]/16 bg-[#171815]/58 text-[#f5f3ee]/92 backdrop-blur-md hover:border-[#e2c99b]/55 hover:bg-[#171815]/76"
                                       }`}
                                   >
                                     <span
                                       aria-hidden="true"
-                                      className={`mt-2 h-1.5 w-1.5 shrink-0 rotate-45 transition-colors duration-300 ${isHovered
+                                      className={`h-1.5 w-1.5 shrink-0 rotate-45 transition-colors duration-300 ${isHovered
                                         ? "bg-[#e2c99b]"
                                         : "bg-[#e2c99b]/65"
                                         }`}
@@ -268,9 +264,6 @@ export default function Services() {
                                     <span className="min-w-0 flex-1">
                                       <span className="block text-sm font-semibold tracking-[0.02em] text-[#f5f3ee] leading-[1.3] sm:text-[15px] lg:text-base">
                                         {sub.title}
-                                      </span>
-                                      <span className="mt-1.5 block text-[11.5px] font-normal leading-[1.52] text-[#f5f3ee]/78">
-                                        {sub.description}
                                       </span>
                                     </span>
                                   </button>

@@ -1,7 +1,5 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { ArrowUpRight, ArrowDown } from "lucide-react";
 
 const BUILDING = "/images/building.png";
 // BUILDING IMAGE SETTINGS — adjust these when changing the image
@@ -492,15 +490,6 @@ const windowIn = ease(
       through architecture, interior design, construction and turnkey solutions.
     </span>
   </p>
-  <div className="mt-5 flex justify-center">
-  <Link
-    href="/properties"
-   className="inline-flex items-center gap-2 rounded-full bg-[#171815] px-5 py-3 text-xs font-semibold text-white transition-all duration-300 hover:bg-[#45483d] hover:scale-105 md:gap-3 md:px-6 md:text-sm"
-  >
-    Find Properties
-    <ArrowUpRight size={15} />
-  </Link>
-</div>
 </div>
   </div>
 </div>

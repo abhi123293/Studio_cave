@@ -52,27 +52,27 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
         title: "BUILDING DESIGN",
         description:
           "Comprehensive architectural design uniting structural expression, refined facade detailing, climate responsiveness, and precise technical documentation.",
-        image: "/images/services/architecture.webp",
+        image: "/images/services/building-design-4k.webp",
         imageAlt:
-          "Modern architectural building facade with travertine walls, timber soffits, and charcoal architectural louvers",
+          "Contemporary two-story residential building featuring cantilevered slabs, charcoal trim, illuminated columns, and landscaped courtyard",
       },
       {
         number: "04",
         title: "SPACE PLANNING",
         description:
           "Human-centered interior zoning crafted for effortless daily movement, natural ventilation, acoustic calm, and balanced indoor-outdoor proportions.",
-        image: "/images/services/interior-design.webp",
+        image: "/images/services/space-planning-4k.webp",
         imageAlt:
-          "Serene open architectural interior balancing oak paneling, natural daylight, and generous spatial flow",
+          "Contemporary single-story residence with stone column, warm timber soffit, glass terrace window, covered carport, and illuminated entrance steps",
       },
       {
         number: "05",
         title: "3D ARCHITECTURAL VISUALISATION",
         description:
           "Photorealistic architectural imagery, twilight lighting studies, and spatial previews that let clients experience proportions and materials before construction begins.",
-        image: "/images/services/arch-visualisation.webp",
+        image: "/images/services/3d-visualisation-4k.webp",
         imageAlt:
-          "Twilight 3D architectural visualization of a luxury villa glowing in warm interior light against a blue-hour sky",
+          "Detailed architectural 3D scale model on a wooden design studio workbench with illuminated interior spaces and landscaped terraces",
       },
     ],
   },
@@ -92,9 +92,9 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
         title: "RESIDENTIAL INTERIOR DESIGN",
         description:
           "Warm, refined living environments tailored around daily routines, natural daylight, custom proportions, and enduring material comfort.",
-        image: "/images/services/interior-design.webp",
+        image: "/images/services/residential-interior-4k.webp",
         imageAlt:
-          "Minimalist luxury residential living space with warm oak wall paneling and travertine table",
+          "Modern luxury residential living room with recessed warm cove ceiling, beige sectional sofa, draped panoramic window, glossy cream coffee table, floating media console, ottoman, and polished tile floor",
       },
       {
         number: "02",
@@ -110,27 +110,27 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
         title: "SPACE OPTIMISATION",
         description:
           "Intelligent interior planning that unlocks usable square footage, streamlines movement, integrates concealed storage, and enhances spatial clarity.",
-        image: "/images/services/arch-planning.webp",
+        image: "/images/services/space-optimisation-4k.webp",
         imageAlt:
-          "Ordered architectural terraces and balanced indoor-outdoor circulation geometry",
+          "Open-plan modern kitchen and living zone with fluted timber island, recessed cove ceiling, backlit display cabinetry, veined marble floor inlay, and clear architectural circulation",
       },
       {
         number: "04",
         title: "MATERIAL AND FURNITURE SELECTION",
         description:
           "Curated natural stones, warm timber finishes, bespoke cabinetry, and architectural furnishings unified into a calm, tactile palette.",
-        image: "/images/services/arch-concept.webp",
+        image: "/images/services/material-furniture-4k.webp",
         imageAlt:
-          "Studio selection of pale wood, natural travertine stone, and matte charcoal finishes",
+          "Luxury curated living room showcasing emerald velvet sectional sofa, veined marble plinth table with brass base, charcoal swivel chair, organic bronze mirror, amber marble wall art, and cascading glass chandelier",
       },
       {
         number: "05",
         title: "LIGHTING AND AESTHETIC DESIGN",
         description:
           "Layered recessed, cove, and accent illumination paired with balanced tonal styling that brings warmth and architectural depth from day to evening.",
-        image: "/images/services/arch-visualisation.webp",
+        image: "/images/services/lighting-aesthetic-4k.webp",
         imageAlt:
-          "Warm architectural recessed and cove lighting glowing across glazed interiors at dusk",
+          "Architectural living interior with warm backlit TV panel on vertical timber slats, illuminated glass bar vitrine cabinet, cove-lit kitchen passage, and sheer-curtained daylight window",
       },
     ],
   },
@@ -150,45 +150,45 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
         title: "CONSTRUCTION PLANNING",
         description:
           "Detailed work-breakdown schedules, resource forecasting, structural sequencing, and disciplined milestone tracking prior to breaking ground.",
-        image: "/images/services/arch-planning.webp",
+        image: "/images/services/construction-planning-4k.webp",
         imageAlt:
-          "Comprehensive residential site layout showing organized courtyard and structural sequencing",
+          "Architectural blueprints, tape measure, and yellow hard hat on a site table overlooking an active two-story villa transitioning from concrete formwork to finished stucco and glazing",
       },
       {
         number: "02",
         title: "RESIDENTIAL AND COMMERCIAL CONSTRUCTION",
         description:
           "Full-scale civil and structural building delivery for bespoke villas, modern residences, and commercial developments built to lasting standards.",
-        image: "/images/services/project-construction.webp",
+        image: "/images/services/commercial-construction-4k.webp",
         imageAlt:
-          "Fair-faced concrete structural columns, steel beams, and timber ceiling beams in build phase",
+          "Multi-story commercial building under construction featuring angled roof overhang, glass curtain wall, concrete column scaffolding, tower cranes, and foreground structural staging yard",
       },
       {
         number: "03",
         title: "SITE EXECUTION",
         description:
           "Hands-on on-site engineering oversight managing excavation, structural concrete, masonry, glazing installation, and finishing trades with precision.",
-        image: "/images/services/architecture.webp",
+        image: "/images/services/site-execution-wide-4k.webp",
         imageAlt:
-          "Executed residential exterior facade with travertine cladding, louvers, and glass railings",
+          "Executed U-shaped modern two-story residence featuring crisp stone cladding, vertical cedar soffits, full-height dark-framed glazing, curved glass balcony balustrades, and courtyard reflecting pool",
       },
       {
         number: "04",
         title: "PROJECT COORDINATION",
         description:
           "Seamless alignment between architects, structural consultants, MEP contractors, and specialized craftsmen to avoid delays and rework.",
-        image: "/images/services/arch-concept.webp",
+        image: "/images/services/project-coordination-4k.webp",
         imageAlt:
-          "Architectural structural massing and coordinated multidisciplinary planning study",
+          "Architectural wireframe-to-render study of a multi-level hillside villa illustrating structural sequencing, interior buildout, stone retaining walls, terraces, and reflecting pool",
       },
       {
         number: "05",
         title: "CONSTRUCTION QUALITY MANAGEMENT",
         description:
           "Rigorous material testing, alignment tolerance checks, waterproofing audits, and stage-wise technical sign-offs guaranteeing durable craftsmanship.",
-        image: "/images/services/turnkey-solutions.webp",
+        image: "/images/services/construction-quality-full-4k.webp",
         imageAlt:
-          "Precision-finished travertine paving, timber soffits, and seamless glazing alignment",
+          "Luxury bathroom finished with book-matched blue-and-gold veined porcelain slabs across walls and floor, dual brass-framed mirrors and vanities, pendant lighting, and sculptural freestanding soaking tub",
       },
     ],
   },
@@ -208,54 +208,54 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
         title: "DESIGN AND PLANNING",
         description:
           "Integrated architectural concepts, interior layouts, engineering drawings, and budget alignment crafted under one unified vision from day one.",
-        image: "/images/services/arch-concept.webp",
+        image: "/images/services/turnkey-design-planning-4k.webp",
         imageAlt:
-          "Architectural massing model and material planning study in soft studio daylight",
+          "Tailored living lounge featuring teal recessed wall molding, fluted backlit TV unit, backlit shelving, deep teal velvet seating, and open dining flow",
       },
       {
         number: "02",
         title: "MATERIAL PROCUREMENT",
         description:
           "Direct sourcing, sample validation, vendor scheduling, and transparent supply-chain management for stones, timber, fixtures, and hardware.",
-        image: "/images/services/architecture.webp",
+        image: "/images/services/turnkey-procur-4k.webp",
         imageAlt:
-          "Curated travertine stone, cedar timber soffits, and architectural steel louvers on site",
+          "Modern living and dining residence showcasing sourced dark engineered timber flooring, tailored cream upholstery, warm cove lighting, draped glazing, and minimalist media cabinetry",
       },
       {
         number: "03",
         title: "CONSTRUCTION EXECUTION",
         description:
           "Complete structural, civil, facade, and technical building works executed cleanly to engineering specifications and agreed timelines.",
-        image: "/images/services/project-construction.webp",
+        image: "/images/services/turnkey-construction-execution-4k.webp",
         imageAlt:
-          "Modern architectural concrete columns, timber framing, and steel beams under construction",
+          "Precision matte navy cabinetry and waterfall oak island beneath warm under-lit timber shelving, matte black pendants, and built-in stainless range",
       },
       {
         number: "04",
         title: "INTERIOR EXECUTION",
         description:
           "Turnkey fit-out encompassing custom millwork, flooring, ceiling lighting, bespoke furniture installation, and refined surface detailing.",
-        image: "/images/services/interior-design.webp",
+        image: "/images/services/turnkey-interior-execution-4k.webp",
         imageAlt:
-          "Finished minimalist interior featuring custom oak wall paneling and travertine stone table",
+          "Custom forest-green paneled cabinetry with brushed brass hardware, marble countertop island, twin brass dome pendants, and sunlit garden window",
       },
       {
         number: "05",
         title: "PROJECT MANAGEMENT",
         description:
           "Single-point accountability overseeing schedules, cost control, contractor coordination, and regular progress reporting without client stress.",
-        image: "/images/services/arch-planning.webp",
+        image: "/images/services/turnkey-project-management-4k.webp",
         imageAlt:
-          "Coordinated multi-zone residential architecture and landscape execution",
+          "Symmetrical U-shaped sage and dark-walnut modular kitchen featuring illuminated glass upper vitrines, backlit veined marble backsplash, and sleek black stone counters",
       },
       {
         number: "06",
         title: "FINAL HANDOVER",
         description:
           "Thorough snag inspections, MEP commissioning, deep-clean detailing, and smooth key handover ready for immediate occupancy.",
-        image: "/images/services/turnkey-solutions.webp",
+        image: "/images/services/turnkey-handover-4k.webp",
         imageAlt:
-          "Completed modern luxury residence and courtyard lit warmly at golden hour ready for handover",
+          "Completed architectural foyer corridor featuring custom walnut doors, floating backlit credenza with botanical vase, framed monochrome artworks, warm ceiling coves, and polished marble floor",
       },
     ],
   },
