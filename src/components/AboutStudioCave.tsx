@@ -214,7 +214,7 @@ export default function AboutStudioCave() {
   return (
     <section
       aria-label="About Studio Cave"
-      className="relative z-40 -mt-screen w-full bg-transparent text-[#171815]"
+      className="relative z-40 -mt-[100svh] w-full bg-transparent text-[#171815]"
     >
       {/* overflow-x-clip keeps position: sticky hardware-locked on mobile & desktop */}
       <div
@@ -234,7 +234,7 @@ export default function AboutStudioCave() {
           className="sticky top-0 h-[100svh] w-full overflow-hidden bg-[#dbe4ee] will-change-[opacity] md:min-h-[620px]"
           style={{
             background:
-              "radial-gradient(ellipse 60% 50% at 6% 95%, rgba(255,176,130,0.65) 0%, rgba(255,200,165,0.34) 45%, transparent 80%), linear-gradient(180deg, #b6d0e6 0%, #dbe4ee 42%, #e9e8e3 78%, #f1ded0 100%)",
+              "radial-gradient(ellipse 54% 44% at 6% 62%, rgba(255,176,130,0.42) 0%, rgba(255,200,165,0.18) 42%, transparent 72%), linear-gradient(180deg, #b6d0e6 0%, #dbe4ee 46%, #e9e8e3 84%, #e9e8e3 100%)",
           }}
         >
           {/* CENTRAL CLIPPED TEXT REVEAL AREA */}

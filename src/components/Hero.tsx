@@ -387,29 +387,6 @@ const windowIn = ease(
           </div>
         </div>
 
-        {/* NAVIGATION (always visible) */}
-        <header className="absolute inset-x-0 top-0 z-40 flex items-center justify-between px-6 py-6 md:px-12 lg:px-20">
-          <Link href="/" className="text-2xl font-semibold tracking-tight">
-            STUDIO CAVE<span className="text-[#8b927c]"></span>
-          </Link>
-
-          <nav className="hidden items-center gap-8 text-sm md:flex">
-            <Link href="#home" className="hover:opacity-60">Home</Link>
-            <Link href="#about" className="hover:opacity-60">About</Link>
-            <Link href="#services" className="hover:opacity-60">Services</Link>
-            <Link href="/blog" className="hover:opacity-60">Blog</Link>
-            <Link href="#contact" className="hover:opacity-60">Contact</Link>
-          </nav>
-
-          <Link
-            href="#contact"
-            className="flex items-center gap-2 rounded-full bg-[#171815] px-5 py-3 text-sm text-white transition hover:bg-[#45483d]"
-          >
-            sign in
-            <ArrowUpRight size={16} />
-          </Link>
-        </header>
-
         {/* BUILDING */}
     <img
   src={BUILDING}

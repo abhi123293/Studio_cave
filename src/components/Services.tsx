@@ -45,7 +45,7 @@ export default function Services() {
       className="relative z-40 w-full text-[#171815]"
       style={{
         background:
-          "radial-gradient(ellipse 60% 50% at 6% 95%, rgba(255,176,130,0.42) 0%, rgba(255,200,165,0.2) 45%, transparent 80%), linear-gradient(180deg, #f1ded0 0%, #dbe4ee 24%, #b6d0e6 68%, #dbe4ee 100%)",
+          "radial-gradient(ellipse 58% 46% at 8% 82%, rgba(255,176,130,0.38) 0%, rgba(255,200,165,0.18) 45%, transparent 75%), linear-gradient(180deg, #e9e8e3 0%, #dbe4ee 42%, #b6d0e6 78%, #dbe4ee 100%)",
       }}
     >
       <div className="w-full px-4 py-20 sm:px-8 md:px-12 md:py-24 lg:px-16 lg:pb-36 lg:pt-28">
@@ -191,9 +191,8 @@ export default function Services() {
                               {service.title}
                             </h3>
                             <p
-                              className={`mt-2.5 text-sm leading-[1.64] text-[#f5f3ee]/86 sm:text-[15px] ${
-                                isSubOpen ? "" : "line-clamp-2"
-                              }`}
+                              className={`mt-2.5 text-sm leading-[1.64] text-[#f5f3ee]/86 sm:text-[15px] ${isSubOpen ? "" : "line-clamp-2"
+                                }`}
                             >
                               {service.description}
                             </p>
@@ -261,11 +260,10 @@ export default function Services() {
                                   >
                                     <span
                                       aria-hidden="true"
-                                      className={`mt-2 h-1.5 w-1.5 shrink-0 rotate-45 transition-colors duration-300 ${
-                                        isHovered
-                                          ? "bg-[#e2c99b]"
-                                          : "bg-[#e2c99b]/65"
-                                      }`}
+                                      className={`mt-2 h-1.5 w-1.5 shrink-0 rotate-45 transition-colors duration-300 ${isHovered
+                                        ? "bg-[#e2c99b]"
+                                        : "bg-[#e2c99b]/65"
+                                        }`}
                                     />
                                     <span className="min-w-0 flex-1">
                                       <span className="block text-sm font-semibold tracking-[0.02em] text-[#f5f3ee] leading-[1.3] sm:text-[15px] lg:text-base">
